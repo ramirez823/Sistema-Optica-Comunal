@@ -1,0 +1,93 @@
+@model OC.Web.ViewModels.PacienteViewModel
+
+<div class="card-dashboard">
+    <h4>Editar Paciente</h4>
+
+    <div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+    @if (User.IsInRole("Admin"))
+    {
+        <div class="d-flex align-items-center gap-3 mb-3">
+            <form asp-action="ToggleBloqueo" method="post" class="m-0">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" value="@Model.Id" />
+                <div class="form-check form-switch m-0">
+                    <input class="form-check-input" type="checkbox" role="switch"
+                           id="p_lock"
+                           checked="@(ViewBag.Bloqueado == true)"
+                           onchange="this.form.submit()">
+                    <label class="form-check-label" for="p_lock">
+                        @(ViewBag.Bloqueado == true ? "Bloqueado" : "Desbloqueado")
+                    </label>
+                </div>
+            </form>
+        </div>
+    }
+
+    <form asp-action="Edit" method="post">
+        <input type="hidden" asp-for="Id" />
+
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label asp-for="Nombres"></label>
+                <input asp-for="Nombres" class="form-control" />
+                <span asp-validation-for="Nombres" class="text-danger"></span>
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label asp-for="Apellidos"></label>
+                <input asp-for="Apellidos" class="form-control" />
+                <span asp-validation-for="Apellidos" class="text-danger"></span>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-4 mb-3">
+                <label asp-for="Cedula"></label>
+                <input asp-for="Cedula" class="form-control cedula-format" placeholder="Ej: 1-2345-6789" maxlength="11" inputmode="numeric" />
+                <span asp-validation-for="Cedula" class="text-danger"></span>
+            </div>
+
+            <div class="col-md-4 mb-3">
+                <label asp-for="Telefono"></label>
+                <input asp-for="Telefono" class="form-control" />
+                <span asp-validation-for="Telefono" class="text-danger"></span>
+            </div>
+
+            <div class="col-md-4 mb-3">
+                <label asp-for="FechaNacimiento"></label>
+                <input asp-for="FechaNacimiento" type="date" class="form-control" />
+                <span asp-validation-for="FechaNacimiento" class="text-danger"></span>
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Email"></label>
+            <input asp-for="Email" type="email" class="form-control" />
+            <span asp-validation-for="Email" class="text-danger"></span>
+        </div>
+
+        <button type="submit" class="btn btn-primary">
+            <i class="bi bi-save"></i> Guardar Cambios
+        </button>
+        <a asp-action="Index" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Volver
+        </a>
+    </form>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        // Solo formatear si el campo no tiene el formato correcto (evitar doble formato)
+        var cedulaInput = document.querySelector('.cedula-format');
+        if (cedulaInput && !/^\d-\d{4}-\d{4}$/.test(cedulaInput.value)) {
+            var digits = cedulaInput.value.replace(/\D/g, '');
+            if (digits.length === 9) {
+                cedulaInput.value = digits[0] + '-' + digits.substring(1, 5) + '-' + digits.substring(5, 9);
+            }
+        }
+    </script>
+}

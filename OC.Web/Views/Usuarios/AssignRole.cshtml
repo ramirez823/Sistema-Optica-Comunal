@@ -1,0 +1,51 @@
+@model OC.Web.ViewModels.RoleAssignmentViewModel
+
+
+@{
+    ViewData["Title"] = "Asignar Rol";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card-dashboard">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h3 class="text-primary">Asignar Rol a Usuario</h3>
+                <a asp-action="Index" class="btn btn-outline-secondary btn-sm">
+                    <i class="bi bi-arrow-left"></i> Volver al Listado
+                </a>
+            </div>
+
+            <form asp-action="AssignRole">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label asp-for="UserId" class="form-label fw-bold">Usuario</label>
+                        <select asp-for="UserId" asp-items="Model.UsersList" class="form-select">
+                            <option value="">-- Seleccionar Usuario --</option>
+                        </select>
+                        <span asp-validation-for="UserId" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="RoleId" class="form-label fw-bold">Rol</label>
+                        <select asp-for="RoleId" asp-items="Model.RolesList" class="form-select">
+                            <option value="">-- Seleccionar Rol --</option>
+                        </select>
+                        <span asp-validation-for="RoleId" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="mt-4 d-grid gap-2 d-md-flex justify-content-md-end">
+                    <button type="submit" class="btn btn-brand px-5">
+                        <i class="bi bi-shield-check me-2"></i> Asignar Rol
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

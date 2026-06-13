@@ -1,0 +1,116 @@
+@model List<OC.Core.Domain.Entities.Asistencia>
+@{
+    ViewData["Title"] = "Asistencia";
+}
+
+<div class="container-fluid px-4">
+    <div class="page-header animate-fade-up">
+        <div class="page-header-text">
+            <div class="page-header-icon"><i class="bi bi-clock"></i></div>
+            <div>
+                <h1 class="page-title">Asistencia</h1>
+                <p class="page-subtitle">
+                    <i class="bi bi-info-circle me-1"></i> Control de entrada y salida del personal.
+                </p>
+            </div>
+        </div>
+        @if (User.IsInRole("Optometrista") || User.IsInRole("Recepcion"))
+        {
+            <div class="page-actions">
+                <a asp-action="MarcarEntrada" class="btn btn-outline-success">
+                    <i class="bi bi-box-arrow-in-right me-1"></i> Marcar entrada
+                </a>
+                <a asp-action="MarcarSalida" class="btn btn-outline-danger">
+                    <i class="bi bi-box-arrow-left me-1"></i> Marcar salida
+                </a>
+            </div>
+        }
+    </div>
+
+    <div class="card-dashboard animate-fade-up delay-1 mb-3">
+        <div class="card-body filter-bar">
+            <form method="get" class="row g-2 align-items-end">
+                <div class="col-12 col-md-4 col-lg-3">
+                    <label class="form-label">Fecha</label>
+                    <input type="date" name="fecha" class="form-control" />
+                </div>
+                <div class="col-6 col-md-2">
+                    <button type="submit" class="btn btn-outline-primary w-100">
+                        <i class="bi bi-funnel me-1"></i> Filtrar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card-dashboard animate-fade-up delay-2">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            @if (User.IsInRole("Admin"))
+                            {
+                                <th>Empleado</th>
+                            }
+                            <th>Fecha</th>
+                            <th>Entrada</th>
+                            <th>Salida</th>
+                            <th class="text-center" style="width:180px">Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var a in Model)
+                        {
+                            <tr>
+                                @if (User.IsInRole("Admin"))
+                                {
+                                    <td>
+                                        <div class="entity-cell">
+                                            <div class="entity-avatar bg-info-subtle text-info-emphasis">
+                                                <i class="bi bi-person-fill"></i>
+                                            </div>
+                                            <div class="fw-semibold">@a.Usuario.Nombre</div>
+                                        </div>
+                                    </td>
+                                }
+                                <td>@a.Fecha.ToString("dd/MM/yyyy")</td>
+                                <td>@(a.HoraEntrada != null ? a.HoraEntrada.Value.ToString("hh:mm tt") : "—")</td>
+                                <td>@(a.HoraSalida != null ? a.HoraSalida.Value.ToString("hh:mm tt") : "—")</td>
+                                <td class="text-center">
+                                    @if (a.HoraEntrada != null && a.HoraSalida != null)
+                                    {
+                                        <span class="status-badge status-badge-active">
+                                            <i class="bi bi-check-circle-fill"></i> Completo
+                                        </span>
+                                    }
+                                    else if (a.HoraEntrada != null)
+                                    {
+                                        <span class="status-badge" style="background:rgba(245,158,11,.12);color:#92400e;">
+                                            <i class="bi bi-clock"></i> Pendiente salida
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="status-badge status-badge-inactive">
+                                            <i class="bi bi-dash-circle"></i> Sin marcar
+                                        </span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            @if (!Model.Any())
+            {
+                <div class="empty-state">
+                    <div class="empty-state-icon"><i class="bi bi-clock"></i></div>
+                    <h5 class="empty-state-title">No hay registros de asistencia</h5>
+                    <p class="empty-state-text">No se encontraron marcas para la fecha consultada.</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>

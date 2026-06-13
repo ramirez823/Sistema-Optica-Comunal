@@ -1,0 +1,342 @@
+@model OC.Web.ViewModels.ReporteDemandaViewModel
+@{
+    ViewData["Title"] = "Reporte de Demanda";
+    var labMes = System.Text.Json.JsonSerializer.Serialize(Model.EtiquetasMes);
+    var datAt = System.Text.Json.JsonSerializer.Serialize(Model.AtendidaPorMes);
+    var datCan = System.Text.Json.JsonSerializer.Serialize(Model.CanceladaPorMes);
+    var datPen = System.Text.Json.JsonSerializer.Serialize(Model.PendientePorMes);
+}
+
+<style>
+    :root {
+        --rpt-navy: #1d2452;
+        --rpt-navy-mid: #2a3466;
+        --rpt-blue: #3b82f6;
+        --rpt-amber: #d4a843;
+        --rpt-amber-dark: #a8852e;
+        --rpt-bg: #f1f5f9;
+        --rpt-card: #ffffff;
+        --rpt-text: #1e293b;
+        --rpt-muted: #64748b;
+        --rpt-success: #10b981;
+        --rpt-danger: #ef4444;
+    }
+    body { background: var(--rpt-bg); }
+    .rpt-header {
+        background: linear-gradient(135deg, var(--rpt-navy) 0%, var(--rpt-navy-mid) 100%);
+        color: white;
+        padding: 1.25rem 2rem;
+        border-radius: .75rem .75rem 0 0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    .rpt-header .title { font-size: 1.1rem; font-weight: 700; margin: 0; }
+    .rpt-header .title i { color: var(--rpt-amber); margin-right: .5rem; }
+    .rpt-body {
+        background: var(--rpt-bg);
+        padding: 1.5rem 2rem 2rem;
+        border-radius: 0 0 .75rem .75rem;
+    }
+    .rpt-card {
+        background: var(--rpt-card);
+        border-radius: .6rem;
+        padding: 1.25rem;
+        box-shadow: 0 2px 12px rgba(15,23,42,.08);
+        border: none;
+    }
+    .rpt-card h6 {
+        font-weight: 700;
+        font-size: .85rem;
+        text-transform: uppercase;
+        letter-spacing: .04em;
+        color: var(--rpt-text);
+        margin-bottom: 1rem;
+    }
+    .rpt-btn {
+        background: var(--rpt-amber);
+        color: var(--rpt-text);
+        border: none;
+        font-weight: 600;
+        font-size: .82rem;
+        padding: .45rem 1rem;
+        border-radius: .4rem;
+        transition: background .15s;
+    }
+    .rpt-btn:hover { background: var(--rpt-amber-dark); color: white; }
+    .rpt-btn-outline {
+        background: transparent;
+        color: rgba(255,255,255,.75);
+        border: 1.5px solid rgba(255,255,255,.35);
+        font-size: .82rem;
+        padding: .4rem .75rem;
+        border-radius: .4rem;
+        transition: all .15s;
+    }
+    .rpt-btn-outline:hover { color: white; border-color: white; }
+    .rpt-filter {
+        background: var(--rpt-card);
+        border-radius: .6rem;
+        padding: 1rem 1.25rem;
+        margin-bottom: 1.25rem;
+        box-shadow: 0 1px 6px rgba(15,23,42,.06);
+    }
+    .rpt-filter .form-control, .rpt-filter .form-select {
+        border-radius: .4rem;
+        border: 1.5px solid #e2e8f0;
+        font-size: .85rem;
+        padding: .45rem .75rem;
+    }
+    .rpt-kpi {
+        background: var(--rpt-card);
+        border-radius: .6rem;
+        padding: 1.25rem;
+        text-align: center;
+        box-shadow: 0 2px 12px rgba(15,23,42,.08);
+    }
+    .rpt-kpi .val { font-size: 1.6rem; font-weight: 800; }
+    .rpt-kpi .lbl { font-size: .72rem; color: var(--rpt-muted); text-transform: uppercase; letter-spacing: .05em; margin-top: .2rem; }
+    .rpt-kpi-navy { border-top: 3px solid var(--rpt-navy-mid); }
+    .rpt-kpi-navy .val { color: var(--rpt-navy-mid); }
+    .rpt-kpi-success { border-top: 3px solid var(--rpt-success); }
+    .rpt-kpi-success .val { color: var(--rpt-success); }
+    .rpt-kpi-danger { border-top: 3px solid var(--rpt-danger); }
+    .rpt-kpi-danger .val { color: var(--rpt-danger); }
+    .rpt-kpi-warning { border-top: 3px solid var(--rpt-amber); }
+    .rpt-kpi-warning .val { color: var(--rpt-amber); }
+    .rpt-table { width: 100%; border-collapse: collapse; font-size: .85rem; }
+    .rpt-table thead th {
+        background: var(--rpt-navy-mid);
+        color: white;
+        padding: .6rem .85rem;
+        text-align: center;
+        font-weight: 600;
+        font-size: .72rem;
+        text-transform: uppercase;
+        letter-spacing: .04em;
+    }
+    .rpt-table thead th:first-child { text-align: left; }
+    .rpt-table tbody tr:nth-child(even) { background: #f8f9fb; }
+    .rpt-table tbody tr:hover { background: rgba(59,130,246,.05); }
+    .rpt-table tbody td { padding: .6rem .85rem; border-bottom: 1px solid #eef0f3; }
+    .rpt-table tbody td:first-child { text-align: left; }
+    .rpt-empty { text-align: center; padding: 3rem; color: var(--rpt-muted); }
+    .rpt-empty i { font-size: 2.5rem; opacity: .35; display: block; margin-bottom: .75rem; }
+    .rpt-progress { height: 8px; border-radius: 4px; background: #e9ecef; overflow: hidden; margin-top: .5rem; }
+</style>
+
+<div class="container mt-4">
+
+    <div class="rpt-header">
+        <div class="d-flex align-items-center gap-2">
+            <a asp-action="Index" class="rpt-btn-outline"><i class="bi bi-arrow-left"></i></a>
+            <span class="title"><i class="bi bi-calendar-check-fill"></i>Reporte de Demanda y Citas</span>
+        </div>
+        <a asp-action="ExportarDemandaExcel"
+           asp-route-desde="@Model.Desde?.ToString("yyyy-MM-dd")"
+           asp-route-hasta="@Model.Hasta?.ToString("yyyy-MM-dd")"
+           asp-route-sucursalId="@Model.SucursalId"
+           target="_blank"
+           class="rpt-btn">
+            <i class="bi bi-file-earmark-excel me-1"></i>Exportar Excel
+        </a>
+    </div>
+
+    <div class="rpt-body">
+
+        <form method="get" asp-action="Demanda" class="rpt-filter">
+            <div class="row g-3 align-items-end">
+                <div class="col-md-3">
+                    <label style="font-size:.75rem;font-weight:600;color:var(--rpt-muted);text-transform:uppercase;letter-spacing:.04em">Desde</label>
+                    <input type="date" name="desde" class="form-control" value="@Model.Desde?.ToString("yyyy-MM-dd")" />
+                </div>
+                <div class="col-md-3">
+                    <label style="font-size:.75rem;font-weight:600;color:var(--rpt-muted);text-transform:uppercase;letter-spacing:.04em">Hasta</label>
+                    <input type="date" name="hasta" class="form-control" value="@Model.Hasta?.ToString("yyyy-MM-dd")" />
+                </div>
+                <div class="col-md-4">
+                    <label style="font-size:.75rem;font-weight:600;color:var(--rpt-muted);text-transform:uppercase;letter-spacing:.04em">Sucursal</label>
+                    <select name="sucursalId" class="form-select">
+                        <option value="">Todas</option>
+                        @foreach (var s in Model.Sucursales)
+                        {
+                            <option value="@s.Id" selected="@(Model.SucursalId == s.Id)">@s.Nombre</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="rpt-btn w-100"><i class="bi bi-funnel me-1"></i>Filtrar</button>
+                </div>
+            </div>
+        </form>
+
+        <div class="row g-3 mb-4">
+            <div class="col-md-3">
+                <div class="rpt-kpi rpt-kpi-navy">
+                    <div class="val">@Model.TotalAgendadas</div>
+                    <div class="lbl">Total agendadas</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="rpt-kpi rpt-kpi-success">
+                    <div class="val">@Model.TotalAtendidas</div>
+                    <div class="lbl">Atendidas</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="rpt-kpi rpt-kpi-danger">
+                    <div class="val">@Model.TotalCanceladas</div>
+                    <div class="lbl">Canceladas</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="rpt-kpi rpt-kpi-warning">
+                    <div class="val">@Model.TotalPendientes</div>
+                    <div class="lbl">Pendientes / Confirmadas</div>
+                </div>
+            </div>
+        </div>
+
+        @if (Model.TotalAgendadas > 0)
+        {
+            var tasaAtencion = (double)Model.TotalAtendidas / Model.TotalAgendadas * 100;
+            var tasaCancelacion = (double)Model.TotalCanceladas / Model.TotalAgendadas * 100;
+            <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                    <div class="rpt-card">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="fw-bold" style="font-size:.8rem;color:var(--rpt-success)">Tasa de atención</span>
+                            <span class="fw-bold" style="color:var(--rpt-success)">@tasaAtencion.ToString("N1")%</span>
+                        </div>
+                        <div class="rpt-progress">
+                            <div class="rpt-progress-bar" style="width:@tasaAtencion.ToString("N1")%;background:var(--rpt-success)"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="rpt-card">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="fw-bold" style="font-size:.8rem;color:var(--rpt-danger)">Tasa de cancelación</span>
+                            <span class="fw-bold" style="color:var(--rpt-danger)">@tasaCancelacion.ToString("N1")%</span>
+                        </div>
+                        <div class="rpt-progress">
+                            <div class="rpt-progress-bar" style="width:@tasaCancelacion.ToString("N1")%;background:var(--rpt-danger)"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="rpt-card">
+                    <h6><i class="bi bi-bar-chart-fill me-1" style="color:var(--rpt-blue)"></i>Citas por mes y estado</h6>
+                    @if (Model.EtiquetasMes.Any())
+                    {
+                        <canvas id="chartDemanda" height="80"></canvas>
+                    }
+                    else
+                    {
+                        <div class="rpt-empty"><i class="bi bi-calendar-x"></i>No hay datos para el período seleccionado.</div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        @if (Model.TotalAgendadas > 0)
+        {
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <div class="rpt-card">
+                        <h6><i class="bi bi-pie-chart-fill me-1" style="color:var(--rpt-blue)"></i>Distribución de estados</h6>
+                        <canvas id="chartEstados"></canvas>
+                    </div>
+                </div>
+                <div class="col-md-8">
+                    <div class="rpt-card" style="max-height:340px;overflow-y:auto;">
+                        <h6>Resumen por mes</h6>
+                        <table class="rpt-table">
+                            <thead>
+                                <tr>
+                                    <th>Mes</th>
+                                    <th class="text-center" style="color:var(--rpt-success)">Atendidas</th>
+                                    <th class="text-center" style="color:var(--rpt-danger)">Canceladas</th>
+                                    <th class="text-center" style="color:var(--rpt-amber)">Pendientes</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @for (int i = 0; i < Model.EtiquetasMes.Count; i++)
+                                {
+                                    <tr>
+                                        <td>@Model.EtiquetasMes[i]</td>
+                                        <td class="text-center fw-semibold" style="color:var(--rpt-success)">@Model.AtendidaPorMes[i]</td>
+                                        <td class="text-center fw-semibold" style="color:var(--rpt-danger)">@Model.CanceladaPorMes[i]</td>
+                                        <td class="text-center fw-semibold" style="color:var(--rpt-amber)">@Model.PendientePorMes[i]</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        }
+
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+    <script>
+        const amber = '#d4a843';
+        const blue = '#3b82f6';
+        const success = '#10b981';
+        const danger = '#ef4444';
+
+        @if (Model.EtiquetasMes.Any())
+        {
+            <text>
+            new Chart(document.getElementById('chartDemanda'), {
+                type: 'bar',
+                data: {
+                    labels: @Html.Raw(labMes),
+                    datasets: [
+                        { label: 'Atendidas', data: @Html.Raw(datAt), backgroundColor: success },
+                        { label: 'Canceladas', data: @Html.Raw(datCan), backgroundColor: danger },
+                        { label: 'Pendientes', data: @Html.Raw(datPen), backgroundColor: amber }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { position: 'top', labels: { font: { size: 12 } } } },
+                    scales: {
+                        x: { stacked: true, grid: { display: false } },
+                        y: { stacked: true, ticks: { stepSize: 1 }, grid: { color: 'rgba(0,0,0,.04)' } }
+                    }
+                }
+            });
+            </text>
+        }
+
+        @if (Model.TotalAgendadas > 0)
+        {
+            <text>
+            new Chart(document.getElementById('chartEstados'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['Atendidas','Canceladas','Pendientes'],
+                    datasets: [{
+                        data: [@Model.TotalAtendidas, @Model.TotalCanceladas, @Model.TotalPendientes],
+                        backgroundColor: [success, danger, amber],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    cutout: '62%',
+                    plugins: { legend: { position: 'bottom', labels: { padding: 16, font: { size: 12 } } } }
+                }
+            });
+            </text>
+        }
+    </script>
+}

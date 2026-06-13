@@ -1,0 +1,132 @@
+@model OC.Core.Domain.Entities.Proveedor
+@{
+    ViewData["Title"] = "Detalle de proveedor";
+    var cantPedidos = ViewBag.CantidadPedidos as int? ?? 0;
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card-dashboard animate-fade-up">
+                <div class="card-body p-4">
+                    <div class="details-header">
+                        <div class="details-header-info">
+                            <div class="details-icon">
+                                <i class="bi bi-building"></i>
+                            </div>
+                            <div>
+                                <h1 class="details-title">@Model.Nombre</h1>
+                                <div class="details-meta">
+                                    <span>Proveedor #@Model.Id</span>
+                                    @if (Model.Activo)
+                                    {
+                                        <span class="status-badge status-badge-active">
+                                            <i class="bi bi-check-circle-fill"></i> Activo
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="status-badge status-badge-inactive">
+                                            <i class="bi bi-pause-circle-fill"></i> Inactivo
+                                        </span>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                        <div class="details-actions">
+                            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-outline-primary">
+                                <i class="bi bi-pencil me-1"></i> Editar
+                            </a>
+                            <a asp-action="Index" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left me-1"></i> Volver
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="info-card">
+                                <div class="info-card-label">
+                                    <i class="bi bi-telephone-fill"></i> Teléfono
+                                </div>
+                                <div class="info-card-value">
+                                    <a href="tel:@Model.NumeroTelefonico">
+                                        +506 @(FormatPhone(Model.NumeroTelefonico))
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-card">
+                                <div class="info-card-label">
+                                    <i class="bi bi-envelope-fill"></i> Correo
+                                </div>
+                                <div class="info-card-value">
+                                    <a href="mailto:@Model.Correo">@Model.Correo</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    @if (!string.IsNullOrWhiteSpace(Model.ContactoAdicionalNombre) || !string.IsNullOrWhiteSpace(Model.ContactoAdicionalTelefono))
+                    {
+                        <div class="section-header">
+                            <i class="bi bi-person-plus"></i> Contacto adicional
+                        </div>
+                        <div class="card bg-light border-0 animate-fade-up">
+                            <div class="card-body">
+                                <div class="row g-3">
+                                    @if (!string.IsNullOrWhiteSpace(Model.ContactoAdicionalNombre))
+                                    {
+                                        <div class="col-md-6">
+                                            <div class="info-card-label">
+                                                <i class="bi bi-person"></i> Nombre
+                                            </div>
+                                            <div class="info-card-value">@Model.ContactoAdicionalNombre</div>
+                                        </div>
+                                    }
+                                    @if (!string.IsNullOrWhiteSpace(Model.ContactoAdicionalTelefono))
+                                    {
+                                        <div class="col-md-6">
+                                            <div class="info-card-label">
+                                                <i class="bi bi-telephone"></i> Teléfono
+                                            </div>
+                                            <div class="info-card-value">
+                                                <a href="tel:@Model.ContactoAdicionalTelefono">
+                                                    @Model.ContactoAdicionalTelefono
+                                                </a>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+                    <div class="section-header">
+                        <i class="bi bi-bar-chart"></i> Resumen de actividad
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <div class="info-card text-center">
+                                <div class="info-card-value fs-2 text-info">@cantPedidos</div>
+                                <div class="info-card-label justify-content-center mt-1">
+                                    Pedido(s) registrado(s)
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@functions {
+    string FormatPhone(string phone)
+    {
+        if (string.IsNullOrEmpty(phone)) return "—";
+        var digits = new string(phone.Where(char.IsDigit).ToArray());
+        return digits.Length == 8 ? $"{digits[..4]}-{digits[4..]}" : phone;
+    }
+}

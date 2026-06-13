@@ -1,0 +1,50 @@
+@using Microsoft.AspNetCore.Identity
+@model OC.Core.Domain.Entities.Cita
+
+<div class="card-dashboard">
+    <h4>Atender Cita</h4>
+
+    <p><b>Paciente:</b> @Model.Paciente.NombreCompleto</p>
+    <p><b>Fecha:</b> @Model.FechaHora.ToString("dd/MM/yyyy HH:mm")</p>
+
+    @if (Model.Expediente != null)
+    {
+        <a asp-action="Details" asp-controller="Expedientess" asp-route-id="@Model.Expediente.Id" class="btn btn-outline-info mb-3">
+            <i class="bi bi-folder2-open"></i> Ver expediente
+        </a>
+    }
+    else if (Model.Estado == "Atendida")
+    {
+        <a asp-action="Create" asp-controller="Expedientess" asp-route-citaId="@Model.Id" class="btn btn-outline-success mb-3">
+            <i class="bi bi-plus-circle"></i> Crear expediente
+        </a>
+    }
+
+    <form method="post">
+        <input type="hidden" name="Id" value="@Model.Id" />
+
+        <div class="mb-3">
+            <label for="estado" class="form-label">Cambiar estado</label>
+            <select name="estado" id="estado" class="form-select">
+                <option value="Pendiente" selected="@(Model.Estado == "Pendiente")">Pendiente</option>
+                <option value="Confirmada" selected="@(Model.Estado == "Confirmada")">Confirmada</option>
+                @if (User.IsInRole("Optometrista") || User.IsInRole("Admin"))
+                {
+                    <option value="Atendida" selected="@(Model.Estado == "Atendida")">Atendida</option>
+                }
+                <option value="Cancelada" selected="@(Model.Estado == "Cancelada")">Cancelada</option>
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <label for="resultadoClinico" class="form-label">Resultado clínico (obligatorio si Atendida)</label>
+            <textarea name="resultadoClinico" id="resultadoClinico" class="form-control" rows="4">@Model.ObservacionesEspecialista</textarea>
+            <small class="form-text text-muted">
+                Si marca como "Atendida", después de guardar podrá registrar el expediente clínico.
+            </small>
+        </div>
+
+        <button type="submit" class="btn btn-success">Guardar cambios</button>
+        <a asp-action="CitasPaciente" class="btn btn-secondary">Cancelar</a>
+    </form>
+</div>

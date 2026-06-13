@@ -1,0 +1,198 @@
+@model OC.Core.Domain.Entities.OrdenTrabajo
+
+<div class="card-dashboard">
+    <h4>Orden de trabajo #@Model.Id</h4>
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show">@TempData["Error"] <button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+    }
+
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <strong>Paciente:</strong> @(Model.Paciente?.NombreCompleto ?? "—")
+        </div>
+        <div class="col-md-6">
+            <strong>Sucursal:</strong> @(Model.Sucursal?.Nombre ?? "—")
+        </div>
+        <div class="col-md-6">
+            <strong>Referencia:</strong> @(Model.Referencia ?? "—")
+        </div>
+        <div class="col-md-6">
+            <strong>Estado actual:</strong>
+            @if (Model.Estado == OC.Core.Domain.Entities.EstadoOrdenTrabajo.Lista)
+            { <span class="badge bg-success">Lista</span> }
+            else if (Model.Estado == OC.Core.Domain.Entities.EstadoOrdenTrabajo.Entregada)
+            { <span class="badge bg-secondary">Entregada</span> }
+            else if (Model.Estado == OC.Core.Domain.Entities.EstadoOrdenTrabajo.EnProceso)
+            { <span class="badge bg-info">En proceso</span> }
+            else
+            { <span class="badge bg-warning text-dark">Pendiente</span> }
+        </div>
+    </div>
+
+    @* Venta asociada — solo lectura *@
+    @if (Model.VentaId.HasValue)
+    {
+        <div class="alert alert-secondary mb-3">
+            <strong>Venta asociada:</strong> Factura #@(Model.Venta?.NumeroFactura ?? Model.VentaId.ToString())
+            — Total: @(Model.Venta?.Total.ToString("N2") ?? "—")
+            <br />
+            @if (Model.Venta?.FechaVenta != null)
+            {
+                <span>Fecha: @Model.Venta.FechaVenta.ToString("dd/MM/yyyy")</span>
+            }
+        </div>
+    }
+
+    @* Graduación del paciente (solo lectura) — via Venta → ValorClinico *@
+    @if (Model.Venta?.ValorClinico != null)
+    {
+        var vc = Model.Venta.ValorClinico;
+        <div class="card mb-4 border-primary">
+            <div class="card-header bg-primary text-white">
+                <i class="bi bi-eye"></i> Graduación del paciente (solo lectura)
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3"><strong>Esfera OD:</strong> @(vc.EsferaOD?.ToString("N2") ?? "—")</div>
+                    <div class="col-md-3"><strong>Cilindro OD:</strong> @(vc.CilindroOD?.ToString("N2") ?? "—")</div>
+                    <div class="col-md-3"><strong>Eje OD:</strong> @(vc.EjeOD?.ToString() ?? "—")</div>
+                    <div class="col-md-3"><strong>ADD OD:</strong> @(vc.ADD_Od?.ToString("N2") ?? "—")</div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col-md-3"><strong>Esfera OI:</strong> @(vc.EsferaOI?.ToString("N2") ?? "—")</div>
+                    <div class="col-md-3"><strong>Cilindro OI:</strong> @(vc.CilindroOI?.ToString("N2") ?? "—")</div>
+                    <div class="col-md-3"><strong>Eje OI:</strong> @(vc.EjeOI?.ToString() ?? "—")</div>
+                    <div class="col-md-3"><strong>ADD OI:</strong> @(vc.ADD_Oi?.ToString("N2") ?? "—")</div>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info mb-3">No hay valor clínico vinculado a esta venta.</div>
+    }
+
+    @* Datos del lente (fabricación) — editables para Admin/Recepcion/Optometrista, read-only para TecnicoOcular *@
+    @{
+        var esTecnico = User.IsInRole("TecnicoOcular");
+        var roAttr = esTecnico ? "readonly" : null;
+        var disAttr = esTecnico ? "disabled" : null;
+        var disabledClass = esTecnico ? "bg-light" : "";
+    }
+    <form asp-action="Edit" method="post">
+        <input type="hidden" name="id" value="@Model.Id" />
+
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <i class="bi bi-eyedropper"></i> Datos del lente
+                @if (esTecnico)
+                {
+                    <span class="badge bg-warning text-dark ms-2">Solo lectura — definido por Optometría / Ventas</span>
+                }
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">PD (mm)</label>
+                        <input name="PD" class="form-control @disabledClass" type="number" step="1" min="50" max="80"
+                               value="@(Model.PD?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "")"
+                               @roAttr @disAttr />
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Tipo de lente</label>
+                        <select name="TipoLente" class="form-select @disabledClass" @disAttr>
+                            <option value="">-- Seleccione --</option>
+                            <option value="Monofocal" selected="@(Model.TipoLente == "Monofocal")">Monofocal</option>
+                            <option value="Bifocal" selected="@(Model.TipoLente == "Bifocal")">Bifocal</option>
+                            <option value="Progresivo" selected="@(Model.TipoLente == "Progresivo")">Progresivo</option>
+                            <option value="Lente de contacto" selected="@(Model.TipoLente == "Lente de contacto")">Lente de contacto</option>
+                            <option value="Otro" selected="@(Model.TipoLente == "Otro")">Otro</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Material del lente</label>
+                        <select name="MaterialLente" class="form-select @disabledClass" @disAttr>
+                            <option value="">-- Seleccione --</option>
+                            <option value="1.50" selected="@(Model.MaterialLente == "1.50")">1.50 (Standard)</option>
+                            <option value="1.60" selected="@(Model.MaterialLente == "1.60")">1.60 (Alto índice)</option>
+                            <option value="1.67" selected="@(Model.MaterialLente == "1.67")">1.67 (Super alto índice)</option>
+                            <option value="1.74" selected="@(Model.MaterialLente == "1.74")">1.74 (Ultra alto índice)</option>
+                            <option value="Otro" selected="@(Model.MaterialLente == "Otro")">Otro</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12 mb-3">
+                        <label class="form-label">Tratamientos</label>
+                        @{
+                            var tratamientosActuales = Model.Tratamientos?.Split(',', StringSplitOptions.RemoveEmptyEntries) ?? Array.Empty<string>();
+                        }
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" id="tratAntiReflejo" value="AntiReflejo"
+                                   @(tratamientosActuales.Contains("AntiReflejo") ? "checked" : "") @disAttr />
+                            <label class="form-check-label" for="tratAntiReflejo">Anti-reflejo</label>
+                        </div>
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" id="tratFiltroAzul" value="FiltroAzul"
+                                   @(tratamientosActuales.Contains("FiltroAzul") ? "checked" : "") @disAttr />
+                            <label class="form-check-label" for="tratFiltroAzul">Filtro azul</label>
+                        </div>
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" id="tratFotocromatico" value="Fotocromatico"
+                                   @(tratamientosActuales.Contains("Fotocromatico") ? "checked" : "") @disAttr />
+                            <label class="form-check-label" for="tratFotocromatico">Fotocromático</label>
+                        </div>
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" id="tratEndurecido" value="Endurecido"
+                                   @(tratamientosActuales.Contains("Endurecido") ? "checked" : "") @disAttr />
+                            <label class="form-check-label" for="tratEndurecido">Endurecido</label>
+                        </div>
+                        <input type="hidden" name="Tratamientos" id="Tratamientos" value="@Model.Tratamientos" />
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Laboratorio externo (opcional)</label>
+                        <input name="LaboratorioExterno" class="form-control @disabledClass" placeholder="Nombre del laboratorio"
+                               value="@Model.LaboratorioExterno" @roAttr @disAttr />
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @* Cambio de estado *@
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <i class="bi bi-arrow-repeat"></i> Cambiar estado
+            </div>
+            <div class="card-body">
+                <select name="estado" id="estado" class="form-select" required>
+                    @foreach (Microsoft.AspNetCore.Mvc.Rendering.SelectListItem item in (IEnumerable<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem>)ViewBag.Estados)
+                    {
+                        <option value="@item.Value" selected="@(item.Value == Model.Estado)">@item.Text</option>
+                    }
+                </select>
+                <p class="text-muted small mt-2">Si cambia a "Lista", el paciente recibirá una notificación por correo o SMS (si tiene datos de contacto registrados).</p>
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Actualizar orden</button>
+        <a asp-action="Index" class="btn btn-secondary">Volver</a>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        $(function () {
+            $('form').submit(function () {
+                var treatments = [];
+                $('#tratAntiReflejo:checked, #tratFiltroAzul:checked, #tratFotocromatico:checked, #tratEndurecido:checked')
+                    .each(function () { treatments.push($(this).val()); });
+                $('#Tratamientos').val(treatments.join(','));
+            });
+        });
+    </script>
+}

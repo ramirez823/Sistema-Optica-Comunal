@@ -1,0 +1,546 @@
+﻿@using OC.Web.Controllers
+@{
+    ViewData["Title"] = "Dashboard";
+    var userName = User.Identity?.Name ?? "Usuario";
+    var roles = User.FindAll(System.Security.Claims.ClaimTypes.Role).Select(r => r.Value).ToList();
+    var userRole = roles.Any() ? string.Join(", ", roles) : "Sin rol";
+    var hora = DateTime.Now.Hour;
+    var saludo = hora < 12 ? "Buenos días" : hora < 19 ? "Buenas tardes" : "Buenas noches";
+    var grupos = ViewBag.ModulosGroups as List<ModuloGroup> ?? new List<ModuloGroup>();
+    var esTecnicoOcular = User.IsInRole("TecnicoOcular");
+    var ordenesPendientes = ViewBag.OrdenesPendientes as int? ?? 0;
+    var ordenesEnProceso = ViewBag.OrdenesEnProceso as int? ?? 0;
+    var ordenesListas = ViewBag.OrdenesListas as int? ?? 0;
+}
+
+<style>
+    /* ============================================
+               Dashboard Home - Estilos mejorados
+               ============================================ */
+
+    .dashboard-home {
+        min-height: calc(100vh - 56px);
+        background: linear-gradient(145deg, #0f172a 0%, #1e3a8a 55%, #1e40af 100%);
+        position: relative;
+        overflow: hidden;
+        padding: 40px 24px 60px;
+    }
+
+    /* Canvas 3D de fondo */
+    #home-canvas {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 0;
+        pointer-events: none;
+    }
+
+    /* Sección de bienvenida */
+    .welcome-block {
+        position: relative;
+        z-index: 2;
+        max-width: 1100px;
+        margin: 0 auto 48px;
+        text-align: center;
+    }
+
+        .welcome-block h2 {
+            font-size: clamp(1.75rem, 5vw, 2.5rem);
+            font-weight: 700;
+            background: linear-gradient(135deg, #fff, rgba(255,255,255,0.85));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            letter-spacing: -0.02em;
+            margin-bottom: 12px;
+        }
+
+        .welcome-block p {
+            font-size: 0.9rem;
+            color: rgba(255,255,255,0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+    .role-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 14px;
+        background: rgba(255,255,255,0.1);
+        backdrop-filter: blur(4px);
+        border: 1px solid rgba(255,255,255,0.2);
+        border-radius: 40px;
+        font-size: 0.75rem;
+        font-weight: 500;
+        color: rgba(255,255,255,0.9);
+    }
+
+    /* ========== GRUPOS (CARDS GRANDES) ========== */
+    .group-card {
+        position: relative;
+        z-index: 2;
+        max-width: 1100px;
+        margin: 0 auto 48px;
+        background: rgba(15, 23, 42, 0.6);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255,255,255,0.15);
+        border-radius: 32px;
+        padding: 24px 24px 32px;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+        .group-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 35px -12px rgba(0,0,0,0.4);
+            border-color: rgba(59,130,246,0.4);
+        }
+
+    .group-header {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 28px;
+        border-bottom: 2px solid rgba(59,130,246,0.5);
+        padding-bottom: 16px;
+    }
+
+        .group-header i {
+            font-size: 2rem;
+            color: #3b82f6;
+            background: rgba(59,130,246,0.2);
+            padding: 12px;
+            border-radius: 20px;
+            transition: transform 0.2s ease;
+        }
+
+        .group-header h2 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin: 0;
+            color: #fff;
+            letter-spacing: -0.3px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+    /* Grid interno de módulos */
+    .modules-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+        gap: 20px;
+    }
+
+    /* Tarjeta de módulo (efecto 3D mejorado) */
+    .module-card {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 14px;
+        padding: 24px 16px 20px;
+        background: rgba(255,255,255,0.05);
+        backdrop-filter: blur(4px);
+        border: 1px solid rgba(255,255,255,0.12);
+        border-radius: 24px;
+        text-decoration: none;
+        color: #fff;
+        text-align: center;
+        transition: all 0.25s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+        position: relative;
+        overflow: hidden;
+        transform-style: preserve-3d;
+        perspective: 500px;
+        will-change: transform;
+    }
+
+        .module-card::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0) 70%);
+            opacity: 0;
+            transition: opacity 0.4s ease;
+            pointer-events: none;
+        }
+
+        .module-card:hover::after {
+            opacity: 1;
+        }
+
+        .module-card:hover {
+            background: rgba(255,255,255,0.12);
+            border-color: rgba(255,255,255,0.25);
+            transform: translateY(-6px) rotateX(3deg) rotateY(2deg);
+            box-shadow: 0 20px 30px -12px rgba(0,0,0,0.35);
+        }
+
+    .mc-icon {
+        width: 56px;
+        height: 56px;
+        border-radius: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 26px;
+        transition: transform 0.2s ease;
+    }
+
+    .module-card:hover .mc-icon {
+        transform: scale(1.05);
+    }
+
+    .mc-label {
+        font-size: 1rem;
+        font-weight: 600;
+        letter-spacing: -0.2px;
+        margin-bottom: 4px;
+        color: #fff;
+    }
+
+    .mc-sub {
+        font-size: 0.75rem;
+        color: rgba(255,255,255,0.65);
+        line-height: 1.3;
+    }
+
+    /* Responsive */
+    @@media (max-width: 768px) {
+        .dashboard-home {
+            padding: 24px 16px 40px;
+        }
+
+        .group-card {
+            padding: 16px;
+            margin-bottom: 32px;
+        }
+
+        .group-header i {
+            font-size: 1.5rem;
+            padding: 8px;
+        }
+
+        .group-header h2 {
+            font-size: 1.3rem;
+        }
+
+        .modules-grid {
+            gap: 12px;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        }
+
+        .module-card {
+            padding: 18px 12px;
+        }
+
+        .mc-icon {
+            width: 48px;
+            height: 48px;
+            font-size: 22px;
+        }
+    }
+
+    @@media (max-width: 480px) {
+        .modules-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    /* ========== KPI / Work-queue cards ========== */
+    .kpi-row {
+        position: relative;
+        z-index: 2;
+        max-width: 1100px;
+        margin: 0 auto 32px;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 16px;
+    }
+
+    .kpi-card {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 20px;
+        background: rgba(15, 23, 42, 0.6);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255,255,255,0.15);
+        border-radius: 20px;
+        color: #fff;
+        text-decoration: none;
+        transition: transform .25s ease, border-color .25s ease, box-shadow .25s ease;
+    }
+
+    .kpi-card:hover {
+        transform: translateY(-4px);
+        border-color: rgba(59,130,246,0.5);
+        box-shadow: 0 16px 28px -12px rgba(0,0,0,0.4);
+        color: #fff;
+    }
+
+    .kpi-icon {
+        width: 56px;
+        height: 56px;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 26px;
+        flex-shrink: 0;
+    }
+
+    .kpi-text { line-height: 1.2; }
+    .kpi-text .kpi-value { font-size: 1.6rem; font-weight: 700; }
+    .kpi-text .kpi-label { font-size: 0.85rem; color: rgba(255,255,255,0.75); }
+
+    /* Banner de bienvenida contextual para el rol */
+    .role-banner {
+        position: relative;
+        z-index: 2;
+        max-width: 1100px;
+        margin: 0 auto 24px;
+        padding: 14px 20px;
+        background: rgba(59, 130, 246, 0.18);
+        border: 1px solid rgba(59, 130, 246, 0.4);
+        border-radius: 16px;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    .role-banner i { font-size: 1.4rem; }
+    .role-banner strong { font-weight: 600; }
+
+    </style>
+
+<div id="home-canvas"></div>
+
+<div class="dashboard-home">
+
+    <div class="welcome-block animate-on-scroll" data-delay="0">
+        <h2>@saludo, @userName</h2>
+        <p>
+            <span class="status-dot"></span>
+            <span class="role-badge">
+                <i class="bi bi-person-check"></i> @userRole
+            </span>
+            @DateTime.Now.ToString("dddd, dd 'de' MMMM 'de' yyyy",
+            new System.Globalization.CultureInfo("es-CR"))
+        </p>
+    </div>
+
+    @* ── Banner contextual según el rol ── *@
+    @if (esTecnicoOcular)
+    {
+        <div class="role-banner">
+            <i class="bi bi-info-circle"></i>
+            <div>
+                <strong>Bienvenido, Técnico Ocular.</strong>
+                Desde aquí puede consultar las órdenes de lentes asignadas y cambiar su estado a
+                <em>En proceso</em> o <em>Lista</em>. Los datos de fabricación (PD, tipo de lente, etc.)
+                son definidos por Optometría / Ventas y no se pueden modificar.
+            </div>
+        </div>
+    }
+    else if (User.IsInRole("Optometrista"))
+    {
+        <div class="role-banner">
+            <i class="bi bi-info-circle"></i>
+            <div>
+                <strong>Bienvenido, Optometrista.</strong>
+                Gestione citas, expedientes clínicos y registre los valores clínicos de los pacientes.
+            </div>
+        </div>
+    }
+    else if (User.IsInRole("Recepcion"))
+    {
+        <div class="role-banner">
+            <i class="bi bi-info-circle"></i>
+            <div>
+                <strong>Bienvenido, Recepción.</strong>
+                Agende citas, registre pacientes y gestione la entrega de órdenes listas.
+            </div>
+        </div>
+    }
+
+    @* ── Cola de trabajo (KPIs) ── *@
+    @if (User.IsInRole("TecnicoOcular") || User.IsInRole("Admin") || User.IsInRole("Recepcion"))
+    {
+        <div class="kpi-row">
+            <a href="/OrdenesTrabajo?sort=" class="kpi-card">
+                <div class="kpi-icon" style="background: rgba(245,158,11,.25); color: #fcd34d;">
+                    <i class="bi bi-clipboard2-pulse"></i>
+                </div>
+                <div class="kpi-text">
+                    <div class="kpi-value">@ordenesPendientes</div>
+                    <div class="kpi-label">Pendientes</div>
+                </div>
+            </a>
+            <a href="/OrdenesTrabajo?sort=" class="kpi-card">
+                <div class="kpi-icon" style="background: rgba(6,182,212,.25); color: #67e8f9;">
+                    <i class="bi bi-gear"></i>
+                </div>
+                <div class="kpi-text">
+                    <div class="kpi-value">@ordenesEnProceso</div>
+                    <div class="kpi-label">En proceso</div>
+                </div>
+            </a>
+            <a href="/OrdenesTrabajo?sort=" class="kpi-card">
+                <div class="kpi-icon" style="background: rgba(16,185,129,.25); color: #6ee7b7;">
+                    <i class="bi bi-check2-circle"></i>
+                </div>
+                <div class="kpi-text">
+                    <div class="kpi-value">@ordenesListas</div>
+                    <div class="kpi-label">Listas para entrega</div>
+                </div>
+            </a>
+        </div>
+    }
+
+    @* ── Grupos de módulos (fallback si el rol no tiene nada configurado) ── *@
+    @if (!grupos.Any())
+    {
+        <div class="role-banner" style="background: rgba(245,158,11,.18); border-color: rgba(245,158,11,.4);">
+            <i class="bi bi-exclamation-triangle"></i>
+            <div>
+                Su rol <strong>@userRole</strong> aún no tiene módulos asignados.
+                Contacte al administrador del sistema para configurar el acceso.
+            </div>
+        </div>
+    }
+    else
+    {
+        @foreach (var grupo in grupos)
+        {
+            <div class="group-card" data-group="@grupo.Title">
+                <div class="group-header">
+                    <i class="bi @grupo.Icon"></i>
+                    <h2>@grupo.Title</h2>
+                </div>
+                <div class="modules-grid">
+                    @foreach (var (m, i) in grupo.Items.Select((m, i) => (m, i)))
+                    {
+                        <a href="@m.Url" class="module-card" data-delay="@(i * 50)">
+                            <div class="mc-icon" style="background: @m.Bg; color: @m.Color;">
+                                <i class="bi @m.Icon"></i>
+                            </div>
+                            <div>
+                                <div class="mc-label">@m.Label</div>
+                                <div class="mc-sub">@m.Sub</div>
+                            </div>
+                        </a>
+                    }
+                </div>
+            </div>
+        }
+    }
+
+</div>
+
+<script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.128.0/build/three.module.js"
+        }
+    }
+</script>
+<script type="module">
+    import * as THREE from 'three';
+
+    const container = document.getElementById('home-canvas');
+    if (container) {
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setClearColor(0x000000, 0);
+        container.appendChild(renderer.domElement);
+
+        // Partículas suaves (más sutiles)
+        const particlesGeometry = new THREE.BufferGeometry();
+        const particlesCount = 800;
+        const posArray = new Float32Array(particlesCount * 3);
+        for (let i = 0; i < particlesCount * 3; i += 3) {
+            posArray[i] = (Math.random() - 0.5) * 50;
+            posArray[i+1] = (Math.random() - 0.5) * 30;
+            posArray[i+2] = (Math.random() - 0.5) * 20 - 5;
+        }
+        particlesGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+
+        const particlesMaterial = new THREE.PointsMaterial({
+            size: 0.06,
+            color: 0x3b82f6,
+            transparent: true,
+            opacity: 0.4,
+            blending: THREE.AdditiveBlending
+        });
+        const particlesMesh = new THREE.Points(particlesGeometry, particlesMaterial);
+        scene.add(particlesMesh);
+
+        camera.position.z = 18;
+
+        let mouseX = 0, mouseY = 0;
+        document.addEventListener('mousemove', (event) => {
+            mouseX = (event.clientX / window.innerWidth) * 2 - 1;
+            mouseY = (event.clientY / window.innerHeight) * 2 - 1;
+        });
+
+        function animate() {
+            requestAnimationFrame(animate);
+            particlesMesh.rotation.y += 0.0005;
+            particlesMesh.rotation.x += 0.0003;
+            particlesMesh.rotation.x += (mouseY * 0.3 - particlesMesh.rotation.x) * 0.05;
+            particlesMesh.rotation.y += (mouseX * 0.3 - particlesMesh.rotation.y) * 0.05;
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    }
+</script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        if (typeof anime !== 'undefined') {
+            // Animación de entrada de los grupos (stagger)
+            const groups = document.querySelectorAll('.group-card');
+            anime({
+                targets: groups,
+                opacity: [0, 1],
+                translateY: [40, 0],
+                delay: function(el, i) { return i * 150; },
+                duration: 600,
+                easing: 'easeOutCubic'
+            });
+
+            // Animación de las tarjetas dentro de cada grupo (con stagger interno)
+            groups.forEach(group => {
+                const cards = group.querySelectorAll('.module-card');
+                anime({
+                    targets: cards,
+                    opacity: [0, 1],
+                    translateY: [20, 0],
+                    delay: function(el, i) { return parseInt(el.getAttribute('data-delay') || i * 50); },
+                    duration: 500,
+                    easing: 'easeOutQuad'
+                });
+            });
+        } else {
+            // Fallback: mostrar todo directamente
+            document.querySelectorAll('.group-card, .module-card').forEach(el => {
+                el.style.opacity = '1';
+                el.style.transform = 'translateY(0)';
+            });
+        }
+    });
+</script>

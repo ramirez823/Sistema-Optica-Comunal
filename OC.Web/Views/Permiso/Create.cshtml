@@ -1,0 +1,90 @@
+@using OC.Core.Domain.Entities
+@model Permiso
+
+@{
+    ViewData["Title"] = "Crear Permiso";
+}
+
+<div class="card-dashboard page-fade">
+    <h4 class="mb-3"><i class="bi bi-clock-history me-2"></i>Solicitar permiso</h4>
+
+    <form asp-action="Create" method="post" enctype="multipart/form-data">
+        <div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+        @if (ViewBag.Usuarios != null)
+        {
+            <div class="mb-3">
+                <label class="form-label" asp-for="UsuarioId">Usuario</label>
+                <select asp-for="UsuarioId" class="form-select" required>
+                    <option value="">Seleccione un usuario</option>
+                    @foreach (var u in ViewBag.Usuarios)
+                    {
+                        <option value="@u.Id">@u.Nombre</option>
+                    }
+                </select>
+                <span asp-validation-for="UsuarioId" class="text-danger"></span>
+            </div>
+        }
+
+        <div class="mb-3">
+            <label class="form-label" asp-for="Tipo">Tipo de permiso</label>
+            <select asp-for="Tipo" id="tipoPermiso" class="form-select" required>
+                <option value="">Seleccione</option>
+                <option value="Vacaciones">Vacaciones</option>
+                <option value="SinPago">Sin pago</option>
+                <option value="Incapacidad">Incapacidad</option>
+                <option value="Otro">Otro</option>
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label" asp-for="FechaInicio">Fecha inicio</label>
+            <input asp-for="FechaInicio" type="date" class="form-control" required />
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label" asp-for="FechaFin">Fecha fin</label>
+            <input asp-for="FechaFin" type="date" class="form-control" required />
+            <span asp-validation-for="FechaFin" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label" asp-for="Motivo">Motivo</label>
+            <textarea asp-for="Motivo" class="form-control" rows="3"></textarea>
+        </div>
+
+        <div class="mb-3 border rounded p-3 bg-light" id="bloqueDocIncapacidad" style="display: none;">
+            <label class="form-label fw-semibold">
+                <i class="bi bi-paperclip me-1"></i>Documento de incapacidad
+            </label>
+            <input type="file" name="documentoIncapacidad" id="documentoIncapacidad" class="form-control"
+                   accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png" />
+            <div class="form-text">Obligatorio para incapacidad. PDF, JPG o PNG. Máximo 10 MB.</div>
+            <span class="text-danger field-validation-valid" data-valmsg-for="documentoIncapacidad" data-valmsg-replace="true"></span>
+        </div>
+
+        <button type="submit" class="btn btn-brand">Guardar</button>
+        <a asp-action="Index" class="btn btn-outline-secondary">Volver</a>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        (function () {
+            var tipo = document.getElementById('tipoPermiso');
+            var bloque = document.getElementById('bloqueDocIncapacidad');
+            var fileInput = document.getElementById('documentoIncapacidad');
+            function sync() {
+                var v = (tipo.value || '').toLowerCase();
+                var show = v === 'incapacidad';
+                bloque.style.display = show ? 'block' : 'none';
+                if (!show && fileInput) {
+                    fileInput.value = '';
+                }
+            }
+            tipo.addEventListener('change', sync);
+            sync();
+        })();
+    </script>
+}

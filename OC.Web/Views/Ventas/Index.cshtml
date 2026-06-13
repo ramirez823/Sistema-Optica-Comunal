@@ -1,0 +1,171 @@
+@using OC.Core.Domain.Entities
+@using OC.Core.Domain.Enums
+@model dynamic
+
+@{
+    ViewData["Title"] = "Ventas";
+
+    var items = Model is OC.Core.Common.PagedResult<Venta>
+        ? Model.Items
+        : Model;
+
+    var pagination = Model is OC.Core.Common.PagedResult<Venta>
+        ? new PaginationInfo
+        {
+            CurrentPage = Model.PageIndex,
+            TotalPages = Model.TotalPages,
+            GetPageUrl = (page) => Url.Action("Index", new { page })
+        }
+        : null;
+}
+
+<div class="container-fluid px-4">
+    @* ── HEADER ── *@
+    <div class="page-header animate-fade-up">
+        <div class="page-header-text">
+            <div class="page-header-icon">
+                <i class="bi bi-receipt"></i>
+            </div>
+            <div>
+                <h1 class="page-title">Ventas</h1>
+                <p class="page-subtitle">
+                    <i class="bi bi-info-circle me-1"></i>
+                    Gestión de facturas y comprobantes.
+                </p>
+            </div>
+        </div>
+        <div class="page-actions">
+            <a asp-action="Create" class="btn btn-brand">
+                <i class="bi bi-plus-circle me-2"></i> Nueva venta
+            </a>
+        </div>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show animate-fade-up mb-3" role="alert">
+            <i class="bi bi-check-circle me-2"></i>@TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show animate-fade-up mb-3" role="alert">
+            <i class="bi bi-exclamation-circle me-2"></i>@TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @* ── FILTROS ── *@
+    <div class="card-dashboard animate-fade-up delay-1 mb-3">
+        <div class="card-body filter-bar">
+            <div class="row g-2 align-items-end">
+                <div class="col-md-3">
+                    <label class="form-label">Paciente o cajero</label>
+                    <input type="text" id="filtroBusqueda" class="form-control form-control-sm"
+                           placeholder="Nombre, cédula...">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Método de pago</label>
+                    <select id="filtroMetodo" class="form-select form-select-sm">
+                        <option value="">Todos</option>
+                        <option value="Efectivo">Efectivo</option>
+                        <option value="SINPE">SINPE</option>
+                        <option value="Tarjeta">Tarjeta</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Desde</label>
+                    <input type="date" id="filtroDesde" class="form-control form-control-sm">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Hasta</label>
+                    <input type="date" id="filtroHasta" class="form-control form-control-sm">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Ordenar por total</label>
+                    <select id="filtroOrden" class="form-select form-select-sm">
+                        <option value="">Sin ordenar</option>
+                        <option value="asc">Menor → Mayor</option>
+                        <option value="desc">Mayor → Menor</option>
+                    </select>
+                </div>
+                <div class="col-md-1">
+                    <button type="button" id="btnLimpiar"
+                            class="btn btn-outline-secondary w-100" title="Limpiar filtros">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @* ── TABLA ── *@
+    <div class="card-dashboard animate-fade-up delay-2">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" id="tablaVentas">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width:120px">Factura</th>
+                            <th>Fecha</th>
+                            <th>Paciente</th>
+                            <th>Cajero</th>
+                            <th>Método</th>
+                            <th class="text-end" style="width:140px">Total</th>
+                            <th class="text-center" style="width:80px"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="tablaBody">
+                        @foreach (var v in items)
+                        {
+                            <tr class="fila-venta"
+                                data-paciente="@v.Paciente?.NombreCompleto?.ToLower() @v.Paciente?.Cedula"
+                                data-cajero="@v.Usuario?.Nombre?.ToLower()"
+                                data-metodo="@v.MetodoPago.ToString()"
+                                data-fecha="@v.FechaVenta.ToString("yyyy-MM-dd")"
+                                data-total="@v.Total.ToString(System.Globalization.CultureInfo.InvariantCulture)">
+
+                                <td>
+                                    <span class="badge bg-light text-dark border">@v.NumeroFactura</span>
+                                </td>
+                                <td>
+                                    <div class="d-flex flex-column">
+                                        <span class="fw-semibold">@v.FechaVenta.ToString("dd/MM/yyyy")</span>
+                                        <span class="text-muted small">@v.FechaVenta.ToString("HH:mm")</span>
+                                    </div>
+                                </td>
+                                <td>@v.Paciente?.NombreCompleto</td>
+                                <td>@v.Usuario?.Nombre</td>
+                                <td>
+                                    <span class="status-badge @(v.MetodoPago == MetodoPago.Efectivo ? "" : "")"
+                                          style="background:rgba(59,130,246,.10);color:#1d4ed8;">
+                                        <i class="bi bi-credit-card"></i> @v.MetodoPago
+                                    </span>
+                                </td>
+                                <td class="text-end fw-semibold">@($"₡{v.Total:N0}")</td>
+                                <td class="text-center">
+                                    <a asp-action="Factura" asp-route-id="@v.Id"
+                                       class="btn-action btn-action-info" title="Ver factura">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="sinResultados" class="empty-state" style="display:none;">
+                <div class="empty-state-icon"><i class="bi bi-search"></i></div>
+                <h5 class="empty-state-title">No hay ventas que coincidan con los filtros</h5>
+                <p class="empty-state-text">Intenta ajustar los filtros o limpiarlos para ver todas las ventas.</p>
+            </div>
+        </div>
+    </div>
+
+    @if (pagination != null)
+    {
+        @await Html.PartialAsync("_Pagination", pagination)
+    }
+</div>

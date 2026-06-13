@@ -1,0 +1,30 @@
+@model OC.Web.ViewModels.ValidarTotpViewModel
+@{
+    Layout = "_AuthSimplePage";
+    ViewData["Title"] = "Validar autenticador";
+}
+
+<div class="text-center mb-3">
+    <h4>Validar código autenticador</h4>
+    <p class="text-muted small">Cuenta: <strong>@ViewBag.Correo</strong></p>
+</div>
+
+<div class="alert alert-info small">
+    Llave manual: <code>@ViewBag.ManualKey</code>
+</div>
+
+<form asp-action="ValidarTotpRecuperacionStaff" method="post">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="token" value="@ViewBag.Token" />
+    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+    <div class="mb-3">
+        <label asp-for="Codigo" class="form-label"></label>
+        <input asp-for="Codigo" class="form-control text-center" maxlength="6" placeholder="123456" autocomplete="one-time-code" />
+        <span asp-validation-for="Codigo" class="text-danger small"></span>
+    </div>
+    <button type="submit" class="btn btn-primary w-100">Validar</button>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

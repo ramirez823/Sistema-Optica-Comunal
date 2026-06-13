@@ -1,0 +1,29 @@
+@model OC.Web.ViewModels.RecuperarContrasenaStaffViewModel
+@{
+    Layout = "_AuthSimplePage";
+    ViewData["Title"] = "Recuperar contraseña";
+}
+
+<div class="text-center mb-4">
+    <h4 class="mb-1">Recuperar contraseña (personal)</h4>
+    <p class="text-muted small">Ingrese su correo institucional. Deberá validar el código de su app autenticadora.</p>
+</div>
+
+<form asp-action="RecuperarContrasena" method="post">
+    @Html.AntiForgeryToken()
+    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+    <div class="mb-3">
+        <label asp-for="Correo" class="form-label"></label>
+        <input asp-for="Correo" class="form-control" autocomplete="email" />
+        <span asp-validation-for="Correo" class="text-danger small"></span>
+    </div>
+    <button type="submit" class="btn btn-primary w-100 mb-2">Continuar con TOTP</button>
+    <a asp-action="Login" class="btn btn-outline-light w-100 btn-sm">Volver al inicio de sesión</a>
+    <p class="text-center text-muted small mt-3 mb-0">
+        <a asp-controller="PacienteAccount" asp-action="RecuperarContrasena" class="link-light">Soy paciente (cédula y correo)</a>
+    </p>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

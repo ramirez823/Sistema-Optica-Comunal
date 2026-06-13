@@ -1,0 +1,93 @@
+﻿@model OC.Web.ViewModels.TicketResolverViewModel
+@{
+    ViewData["Title"] ="Resolver Ticket";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card-dashboard animate-on-scroll" data-delay="0">
+                <h4 class="mb-4"><i class="bi bi-check2-circle me-2"></i> Resolver Ticket</h4>
+
+                <div class="alert alert-info mb-4">
+                    <strong>Ticket:</strong> @Model.NumeroSeguimiento - @Model.Titulo
+                    <div class="mt-2"><i class="bi bi-clock-history"></i> Tiempo desde asignación: <span id="tiempoCalculado"></span></div>
+                </div>
+
+                <form asp-action="Resolver" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" asp-for="Id" />
+
+                    <div class="mb-3">
+                        <label asp-for="SolucionAplicada" class="form-label fw-semibold">Solución aplicada *</label>
+                        <input asp-for="SolucionAplicada" class="form-control" placeholder="Ej: Reinstalación de controladores, Reemplazo de hardware..." />
+                        <span asp-validation-for="SolucionAplicada" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="ObservacionesInternas" class="form-label fw-semibold">Observaciones internas (para el equipo)</label>
+                        <textarea asp-for="ObservacionesInternas" class="form-control" rows="3" placeholder="Notas que no verá el cliente..."></textarea>
+                        <span asp-validation-for="ObservacionesInternas" class="text-danger"></span>
+                    </div>
+
+                    <div class="d-flex gap-3">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-lg me-2"></i> Marcar como Resuelto
+                        </button>
+                        <a asp-action="PanelTecnico" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left me-2"></i> Cancelar
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        anime({
+            targets: '.animate-on-scroll',
+            opacity: [0, 1],
+            translateY: [20, 0],
+            duration: 600,
+            easing: 'easeOutCubic'
+        });
+
+        // Calcular tiempo automáticamente
+        const fechaAsignacion = new Date("@Model.FechaAsignacion?.ToString("o")");
+        const fechaCreacion = new Date("@Model.FechaCreacion.ToString("o")");
+        const inicio = fechaAsignacion || fechaCreacion;
+        const ahora = new Date();
+        const diffHoras = (ahora - inicio) / (1000 * 60 * 60);
+        const horas = Math.floor(diffHoras);
+        const minutos = Math.floor((diffHoras - horas) * 60);
+        document.getElementById('tiempoCalculado').innerText = `${horas}h ${minutos}m`;
+
+        // Efecto ripple
+        document.querySelectorAll('. ').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                const ripple = document.createElement('span');
+                const rect = this.getBoundingClientRect();
+                const size = Math.max(rect.width, rect.height);
+                ripple.style.cssText = `
+                    position: absolute;
+                    width: ${size}px;
+                    height: ${size}px;
+                    left: ${e.clientX - rect.left - size/2}px;
+                    top: ${e.clientY - rect.top - size/2}px;
+                    background: rgba(255,255,255,0.4);
+                    border-radius: 50%;
+                    transform: scale(0);
+                    animation: ripple-anim 0.5s ease-out;
+                    pointer-events: none;
+                `;
+                if (getComputedStyle(this).position === 'static') this.style.position = 'relative';
+                this.style.overflow = 'hidden';
+                this.appendChild(ripple);
+                setTimeout(() => ripple.remove(), 500);
+            });
+        });
+    </script>
+}

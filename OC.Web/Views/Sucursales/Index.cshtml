@@ -1,0 +1,121 @@
+@model OC.Core.Common.PagedResult<OC.Core.Domain.Entities.Sucursal>
+@{
+    ViewData["Title"] = "Sucursales";
+    var pagination = new PaginationInfo
+    {
+        CurrentPage = Model.PageIndex,
+        TotalPages = Model.TotalPages,
+        GetPageUrl = (page) => Url.Action("Index", new { page })
+    };
+}
+
+<div class="container-fluid px-4">
+    <div class="page-header animate-fade-up">
+        <div class="page-header-text">
+            <div class="page-header-icon"><i class="bi bi-geo-alt"></i></div>
+            <div>
+                <h1 class="page-title">Sucursales</h1>
+                <p class="page-subtitle">
+                    <i class="bi bi-info-circle me-1"></i>
+                    @(Model.TotalCount == 0 ? "Sin sucursales." : $"{Model.TotalCount} sucursal(es) registrada(s).")
+                </p>
+            </div>
+        </div>
+        <div class="page-actions">
+            <a asp-action="Create" class="btn btn-brand">
+                <i class="bi bi-plus-circle me-1"></i> Nueva Sucursal
+            </a>
+        </div>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show animate-fade-up mb-3" role="alert">
+            <i class="bi bi-check-circle me-2"></i>@TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="card-dashboard animate-fade-up delay-1">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Sucursal</th>
+                            <th>Dirección</th>
+                            <th>Teléfono</th>
+                            <th class="text-center" style="width:120px">Estado</th>
+                            <th class="text-center" style="width:140px">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var s in Model.Items)
+                        {
+                            <tr>
+                                <td>
+                                    <div class="entity-cell">
+                                        <div class="entity-avatar bg-info-subtle text-info-emphasis">
+                                            <i class="bi bi-geo-alt-fill"></i>
+                                        </div>
+                                        <div>
+                                            <div class="fw-semibold">@s.Nombre</div>
+                                            <div class="text-muted small">Sucursal #@s.Id</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>@s.Direccion</td>
+                                <td>@s.Telefono</td>
+                                <td class="text-center">
+                                    @if (s.Activo)
+                                    {
+                                        <span class="status-badge status-badge-active">
+                                            <i class="bi bi-check-circle-fill"></i> Activa
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="status-badge status-badge-inactive">
+                                            <i class="bi bi-pause-circle-fill"></i> Inactiva
+                                        </span>
+                                    }
+                                </td>
+                                <td class="text-center">
+                                    <div class="action-buttons">
+                                        <a asp-action="Edit" asp-route-id="@s.Id"
+                                           class="btn-action btn-action-primary" title="Editar">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <form asp-action="ToggleStatus" asp-route-id="@s.Id" method="post"
+                                              class="d-inline" onsubmit="return confirm('¿Cambiar estado de la sucursal?');">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit"
+                                                    class="btn-action @(s.Activo ? "btn-action-danger" : "btn-action-success")"
+                                                    title="@(s.Activo ? "Desactivar" : "Activar")">
+                                                <i class="bi @(s.Activo ? "bi-pause-fill" : "bi-play-fill")"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            @if (!Model.Items.Any())
+            {
+                <div class="empty-state">
+                    <div class="empty-state-icon"><i class="bi bi-geo-alt"></i></div>
+                    <h5 class="empty-state-title">No hay sucursales registradas</h5>
+                    <p class="empty-state-text">Registra la primera sucursal donde opera la óptica.</p>
+                    <a asp-action="Create" class="btn btn-brand">
+                        <i class="bi bi-plus-circle me-1"></i> Crear la primera
+                    </a>
+                </div>
+            }
+        </div>
+    </div>
+
+    @await Html.PartialAsync("_Pagination", pagination)
+</div>

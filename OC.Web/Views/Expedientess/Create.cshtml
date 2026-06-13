@@ -1,0 +1,57 @@
+﻿@model OC.Web.ViewModels.ExpedienteCreateViewModel
+
+<div class="card-dashboard">
+    <h4>Registrar Expediente Clínico</h4>
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="alert alert-info mb-3">
+        <strong>Paciente:</strong> @Model.NombrePaciente<br />
+        <strong>Fecha de la cita:</strong> @Model.FechaCita.ToString("dd/MM/yyyy HH:mm")
+    </div>
+
+    @if (Model.CitaAtendida)
+    {
+        <div class="alert alert-warning">
+            <i class="bi bi-info-circle"></i> La cita ya fue marcada como atendida. Complete los datos del expediente clínico.
+        </div>
+    }
+
+    <form asp-action="Create" method="post">
+        <input type="hidden" asp-for="CitaId" />
+        <input type="hidden" asp-for="NombrePaciente" />
+        <input type="hidden" asp-for="FechaCita" />
+        <input type="hidden" asp-for="PacienteId" />
+
+        <div class="mb-3">
+            <label asp-for="MotivoConsulta" class="form-label"></label>
+            <textarea asp-for="MotivoConsulta" class="form-control" rows="3"></textarea>
+            <span asp-validation-for="MotivoConsulta" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Observaciones" class="form-label"></label>
+            <textarea asp-for="Observaciones" class="form-control" rows="3"></textarea>
+            <span asp-validation-for="Observaciones" class="text-danger"></span>
+        </div>
+
+        <button type="submit" class="btn btn-primary">
+            <i class="bi bi-save"></i> Guardar Expediente
+        </button>
+        <a asp-controller="Historial" asp-action="HistorialPaciente" asp-route-pacienteId="@Model.PacienteId" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Volver al Historial
+        </a>
+    </form>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

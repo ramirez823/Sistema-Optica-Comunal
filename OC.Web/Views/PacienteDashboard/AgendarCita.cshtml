@@ -1,0 +1,148 @@
+@{
+    var esSolicitar = ViewBag.EsSolicitarCita == true;
+    ViewData["Title"] = esSolicitar ? "Solicitar Nueva Cita" : "Reservar mi cita";
+    var sucursalesList = ViewBag.SucursalesList as IEnumerable<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem> ?? new List<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem>();
+    var serviciosList = ViewBag.ServiciosList as IEnumerable<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem> ?? new List<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem>();
+}
+
+<div class="card-dashboard">
+    <h4>@(esSolicitar ? "Solicitar Nueva Cita" : "Reservar mi cita")</h4>
+    <p class="text-muted small">Horario: Lunes a Domingo, 8:00 a 18:00. Cada cita dura 30 minutos. Elija sede, fecha y un horario disponible; al confirmar, ese slot no podrá ser reservado por otro paciente.</p>
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show">@TempData["Error"] <button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+    }
+
+    <form asp-action="AgendarCita" method="post" id="formAgendarCita">
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label for="sucursalId">Sede</label>
+                <select name="sucursalId" id="sucursalId" class="form-select" required
+                        oninvalid="this.setCustomValidity('Seleccione una sede.')"
+                        oninput="this.setCustomValidity('')">
+                    <option value="">Seleccione una sede</option>
+                    @foreach (var s in sucursalesList)
+                    {
+                        <option value="@s.Value">@s.Text</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label for="fecha">Fecha</label>
+                <input type="date" name="fecha" id="fecha" class="form-control" required
+                       oninvalid="this.setCustomValidity('Seleccione una fecha.')"
+                       oninput="this.setCustomValidity('')" />
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <label for="servicio">Servicio</label>
+            <select name="servicio" id="servicio" class="form-select" required
+                    oninvalid="this.setCustomValidity('Seleccione un servicio.')"
+                    oninput="this.setCustomValidity('')">
+                <option value="">Seleccione un servicio</option>
+                @foreach (var s in serviciosList)
+                {
+                    <option value="@s.Value">@s.Text</option>
+                }
+            </select>
+        </div>
+
+        <div class="mb-3" id="bloqueHorario" style="display: none;">
+            <label class="d-block mb-2">Horario</label>
+            <p class="text-muted small mb-2">Elija un horario disponible para el día seleccionado:</p>
+            <input type="hidden" name="hora" id="hora" required
+                   oninvalid="this.setCustomValidity('Seleccione un horario disponible.')"
+                   oninput="this.setCustomValidity('')" />
+            <div id="slotsContainer" class="d-flex flex-wrap gap-2"></div>
+            <div id="slotsCargando" class="text-muted small" style="display: none;">Cargando horarios...</div>
+            <div id="slotsVacios" class="text-muted small" style="display: none;">No hay horarios disponibles para esta fecha en la sede elegida.</div>
+        </div>
+
+        <div class="mb-3">
+            <label for="motivo">Notas (opcional)</label>
+            <input type="text" name="motivo" id="motivo" class="form-control" placeholder="Ej: revisión de lentes" maxlength="500" />
+        </div>
+
+        <button type="submit" class="btn btn-brand"><i class="bi bi-calendar-check"></i> Confirmar reserva</button>
+        <a asp-action="Index" class="btn btn-secondary"><i class="bi bi-arrow-left"></i> Volver</a>
+    </form>
+</div>
+
+@section Scripts {
+    <script>
+        (function () {
+            var sucursalId = $('#sucursalId');
+            var fecha = $('#fecha');
+            var horaHidden = $('#hora');
+            var bloqueHorario = $('#bloqueHorario');
+            var slotsContainer = $('#slotsContainer');
+            var slotsCargando = $('#slotsCargando');
+            var slotsVacios = $('#slotsVacios');
+
+            function cargarHoras() {
+                var sid = sucursalId.val();
+                var f = fecha.val();
+                horaHidden.val('');
+                slotsContainer.empty().hide();
+                slotsVacios.hide();
+
+                if (!sid || !f) {
+                    bloqueHorario.hide();
+                    return;
+                }
+
+                bloqueHorario.show();
+                slotsCargando.show();
+
+                $.ajax({
+                    url: '@Url.Action("ObtenerHorasDisponibles", "PacienteDashboard")',
+                    type: 'GET',
+                    data: { sucursalId: sid, fecha: f },
+                    dataType: 'json',
+                    success: function (horas) {
+                        slotsCargando.hide();
+                        if (horas && horas.length > 0) {
+                            slotsContainer.empty();
+                            horas.forEach(function (slot) {
+                                var btn = $('<button type="button" class="btn btn-outline-primary slot-btn">' + slot + '</button>');
+                                btn.data('slot', slot);
+                                btn.on('click', function () {
+                                    $('.slot-btn').removeClass('btn-primary active').addClass('btn-outline-primary');
+                                    $(this).removeClass('btn-outline-primary').addClass('btn-primary active');
+                                    horaHidden.val(slot);
+                                });
+                                slotsContainer.append(btn);
+                            });
+                            slotsContainer.show();
+                            slotsVacios.hide();
+                        } else {
+                            slotsVacios.show();
+                            slotsContainer.hide();
+                        }
+                    },
+                    error: function () {
+                        slotsCargando.hide();
+                        slotsVacios.text('No se pudieron cargar los horarios. Verifique sede y fecha e intente de nuevo.').show();
+                        slotsContainer.hide();
+                    }
+                });
+            }
+
+            sucursalId.on('change', function () {
+                cargarHoras();
+            });
+            fecha.on('change', function () {
+                cargarHoras();
+            });
+
+            $('#formAgendarCita').on('submit', function () {
+                if (!horaHidden.val()) {
+                    alert('Seleccione un horario de la lista.');
+                    return false;
+                }
+            });
+        })();
+    </script>
+}

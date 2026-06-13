@@ -1,0 +1,188 @@
+@model OC.Core.Domain.Entities.Expediente
+
+<div class="card-dashboard">
+    <h4><i class="bi bi-folder2-open me-2"></i>Expediente Clínico</h4>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <!-- Información del paciente y cita -->
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <i class="bi bi-info-circle"></i> Datos de la consulta
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong><i class="bi bi-person"></i> Paciente:</strong> @Model.Cita?.Paciente?.NombreCompleto</p>
+                    <p><strong><i class="bi bi-calendar"></i> Fecha cita:</strong> @Model.Cita?.FechaHora.ToString("dd/MM/yyyy HH:mm")</p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong><i class="bi bi-clock"></i> Fecha registro expediente:</strong> @Model.FechaRegistro.ToString("dd/MM/yyyy HH:mm")</p>
+                </div>
+            </div>
+            <p><strong><i class="bi bi-chat-text"></i> Motivo de consulta:</strong> @Model.MotivoConsulta</p>
+            @if (!string.IsNullOrEmpty(Model.Observaciones))
+            {
+                <p><strong><i class="bi bi-file-earmark-text"></i> Observaciones:</strong> @Model.Observaciones</p>
+            }
+        </div>
+    </div>
+
+    <!-- Historial de Valores Clínicos (1-to-many, descendente por fecha) -->
+    <div class="d-flex justify-content-between align-items-center mb-2">
+        <h5 class="mb-0"><i class="bi bi-clipboard2-pulse me-2"></i>Historial Clínico</h5>
+        <span class="badge bg-secondary">
+            @(Model.ValoresClinicos?.Count ?? 0) registro(s)
+        </span>
+    </div>
+    <p class="text-muted small">Cada control/optometría se registra como una entrada nueva. El sistema mantiene un historial completo de la salud visual del paciente.</p>
+
+    @if (Model.ValoresClinicos != null && Model.ValoresClinicos.Any())
+    {
+        <div class="accordion" id="historialAccordion">
+            @{
+                var ordenados = Model.ValoresClinicos
+                    .OrderByDescending(v => v.FechaRegistro)
+                    .ToList();
+                var index = 0;
+            }
+            @foreach (var vc in ordenados)
+            {
+                var collapseId = $"vc-{vc.Id}";
+                var headingId = $"heading-{vc.Id}";
+                var isFirst = (index == 0);
+                index++;
+                <div class="accordion-item mb-2 shadow-sm">
+                    <h2 class="accordion-header" id="@headingId">
+                        <button class="accordion-button @(isFirst ? "" : "collapsed")" type="button"
+                                data-bs-toggle="collapse" data-bs-target="#@collapseId"
+                                aria-expanded="@(isFirst ? "true" : "false")" aria-controls="@collapseId">
+                            <div class="d-flex justify-content-between w-100 me-3">
+                                <div>
+                                    <i class="bi bi-calendar-event me-1"></i>
+                                    <strong>@vc.FechaRegistro.ToString("dd/MM/yyyy HH:mm")</strong>
+                                    <span class="text-muted ms-2">— @vc.Diagnostico</span>
+                                </div>
+                                <span class="badge bg-info">Control #@vc.Id</span>
+                            </div>
+                        </button>
+                    </h2>
+                    <div id="@collapseId" class="accordion-collapse collapse @(isFirst ? "show" : "")"
+                         aria-labelledby="@headingId" data-bs-parent="#historialAccordion">
+                        <div class="accordion-body">
+
+                            <!-- Refracción -->
+                            <h6 class="text-primary"><i class="bi bi-eye"></i> Refracción</h6>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p class="mb-1"><strong>OD:</strong>
+                                        Esf @(vc.EsferaOD?.ToString("0.00") ?? "—")
+                                        | Cil @(vc.CilindroOD?.ToString("0.00") ?? "—")
+                                        | Eje @(vc.EjeOD?.ToString() ?? "—")
+                                        | ADD @(vc.ADD_Od?.ToString("0.00") ?? "—")
+                                    </p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p class="mb-1"><strong>OI:</strong>
+                                        Esf @(vc.EsferaOI?.ToString("0.00") ?? "—")
+                                        | Cil @(vc.CilindroOI?.ToString("0.00") ?? "—")
+                                        | Eje @(vc.EjeOI?.ToString() ?? "—")
+                                        | ADD @(vc.ADD_Oi?.ToString("0.00") ?? "—")
+                                    </p>
+                                </div>
+                            </div>
+
+                            <!-- Agudeza Visual -->
+                            <h6 class="text-primary mt-3"><i class="bi bi-eye"></i> Agudeza Visual</h6>
+                            <div class="row">
+                                <div class="col-md-3"><strong>OD lejos:</strong> @(vc.AvOdLejos ?? "—")</div>
+                                <div class="col-md-3"><strong>OI lejos:</strong> @(vc.AvOiLejos ?? "—")</div>
+                                <div class="col-md-3"><strong>OD cerca:</strong> @(vc.AvOdCerca ?? "—")</div>
+                                <div class="col-md-3"><strong>OI cerca:</strong> @(vc.AvOiCerca ?? "—")</div>
+                            </div>
+
+                            <!-- PIO -->
+                            <h6 class="text-primary mt-3"><i class="bi bi-droplet"></i> PIO (mmHg)</h6>
+                            <div class="row">
+                                <div class="col-md-3"><strong>OD:</strong> @(vc.PioOd?.ToString("0.0") ?? "—")</div>
+                                <div class="col-md-3"><strong>OI:</strong> @(vc.PioOi?.ToString("0.0") ?? "—")</div>
+                            </div>
+
+                            <!-- Otras pruebas -->
+                            <h6 class="text-primary mt-3"><i class="bi bi-clipboard-data"></i> Otras pruebas</h6>
+                            <div class="row">
+                                <div class="col-md-6 mb-1"><strong>Percepción colores:</strong> @(vc.PercepcionColores ?? "—")</div>
+                                <div class="col-md-6 mb-1"><strong>Motilidad ocular:</strong> @(vc.MotilidadOcular ?? "—")</div>
+                                <div class="col-md-6 mb-1"><strong>Fondo de ojo:</strong> @(vc.FondoOjo ?? "—")</div>
+                                <div class="col-md-6 mb-1"><strong>Campo visual:</strong> @(vc.CampoVisual ?? "—")</div>
+                            </div>
+
+                            @if (!string.IsNullOrEmpty(vc.Observaciones))
+                            {
+                                <h6 class="text-primary mt-3"><i class="bi bi-file-earmark-text"></i> Observaciones</h6>
+                                <p class="mb-0">@vc.Observaciones</p>
+                            }
+
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-warning">
+            <i class="bi bi-info-circle"></i> Aún no hay valores clínicos registrados para este expediente.
+            Puede agregar el primero usando el botón <strong>"Agregar Valor Clínico"</strong> abajo.
+        </div>
+    }
+
+    <!-- Documentos Adjuntos -->
+    <hr />
+    <h5><i class="bi bi-paperclip me-2"></i>Documentos Adjuntos</h5>
+    @if (Model.Documentos != null && Model.Documentos.Any())
+    {
+        <ul class="list-group">
+            @foreach (var doc in Model.Documentos)
+            {
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <div>
+                        <i class="bi bi-file-earmark-text"></i>
+                        <a href="@doc.RutaArchivo" target="_blank">@doc.NombreArchivo</a>
+                    </div>
+                    <span class="text-muted small">subido el @doc.FechaSubida.ToString("dd/MM/yyyy HH:mm")</span>
+                </li>
+            }
+        </ul>
+    }
+    else
+    {
+        <p class="text-muted">No hay documentos adjuntos.</p>
+    }
+
+    <!-- Botones de acción -->
+    <div class="mt-4 d-flex gap-2 flex-wrap">
+        <a asp-action="AddValorClinico" asp-route-expedienteId="@Model.Id" class="btn btn-sm btn-primary">
+            <i class="bi bi-plus-circle"></i> Agregar Valor Clínico
+        </a>
+        <a asp-action="AddDocumento" asp-route-expedienteId="@Model.Id" class="btn btn-sm btn-primary">
+            <i class="bi bi-paperclip"></i> Adjuntar Documento
+        </a>
+        <a asp-controller="CitasPublicas" asp-action="HistorialPaciente" asp-route-pacienteId="@Model.Cita?.PacienteId" class="btn btn-sm btn-secondary">
+            <i class="bi bi-arrow-left"></i> Volver al Historial
+        </a>
+    </div>
+</div>

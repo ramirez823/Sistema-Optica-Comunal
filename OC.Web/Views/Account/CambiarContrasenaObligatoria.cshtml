@@ -1,0 +1,30 @@
+@model OC.Web.ViewModels.CambiarContrasenaObligatoriaViewModel
+@{
+    Layout = "_AuthSimplePage";
+    ViewData["Title"] = "Cambiar contraseña";
+}
+
+<div class="text-center mb-4">
+    <h4 class="mb-1">Cambio de contraseña obligatorio</h4>
+    <p class="text-muted small">Su contraseña es temporal. Defina una contraseña definitiva para continuar.</p>
+</div>
+
+<form asp-action="CambiarContrasenaObligatoria" method="post">
+    @Html.AntiForgeryToken()
+    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+    <div class="mb-3">
+        <label asp-for="NuevaContrasena" class="form-label"></label>
+        <input asp-for="NuevaContrasena" class="form-control" type="password" autocomplete="new-password" />
+        <span asp-validation-for="NuevaContrasena" class="text-danger small"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="ConfirmarContrasena" class="form-label"></label>
+        <input asp-for="ConfirmarContrasena" class="form-control" type="password" autocomplete="new-password" />
+        <span asp-validation-for="ConfirmarContrasena" class="text-danger small"></span>
+    </div>
+    <button type="submit" class="btn btn-primary w-100">Guardar y continuar</button>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

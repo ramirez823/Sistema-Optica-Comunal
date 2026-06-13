@@ -1,0 +1,77 @@
+﻿@model OC.Web.ViewModels.TicketAsignarViewModel
+@{
+    ViewData["Title"] ="Asignar Ticket";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card-dashboard animate-on-scroll" data-delay="0">
+                <h4 class="mb-4"><i class="bi bi-person-plus me-2"></i> Asignar Ticket</h4>
+
+                <div class="alert alert-info mb-4">
+                    <strong>Ticket:</strong> @Model.NumeroSeguimiento - @Model.Titulo
+                </div>
+
+                <form asp-action="Asignar" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" asp-for="Id" />
+
+                    <div class="mb-3">
+                        <label asp-for="TecnicoAsignadoId" class="form-label fw-semibold">Seleccionar técnico</label>
+                        <select asp-for="TecnicoAsignadoId" asp-items="Model.TecnicosList" class="form-select">
+                            <option value="">-- Seleccione un técnico --</option>
+                        </select>
+                        <span asp-validation-for="TecnicoAsignadoId" class="text-danger"></span>
+                    </div>
+
+                    <div class="d-flex gap-3">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-lg me-2"></i> Asignar
+                        </button>
+                        <a asp-action="Index" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left me-2"></i> Cancelar
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        anime({
+            targets: '.animate-on-scroll',
+            opacity: [0, 1],
+            translateY: [20, 0],
+            duration: 600,
+            easing: 'easeOutCubic'
+        });
+
+        document.querySelectorAll('. ').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                const ripple = document.createElement('span');
+                const rect = this.getBoundingClientRect();
+                const size = Math.max(rect.width, rect.height);
+                ripple.style.cssText = `
+                    position: absolute;
+                    width: ${size}px;
+                    height: ${size}px;
+                    left: ${e.clientX - rect.left - size/2}px;
+                    top: ${e.clientY - rect.top - size/2}px;
+                    background: rgba(255,255,255,0.4);
+                    border-radius: 50%;
+                    transform: scale(0);
+                    animation: ripple-anim 0.5s ease-out;
+                    pointer-events: none;
+                `;
+                if (getComputedStyle(this).position === 'static') this.style.position = 'relative';
+                this.style.overflow = 'hidden';
+                this.appendChild(ripple);
+                setTimeout(() => ripple.remove(), 500);
+            });
+        });
+    </script>
+}

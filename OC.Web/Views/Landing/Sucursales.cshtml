@@ -1,0 +1,72 @@
+﻿@{
+    Layout = "_LayoutLanding";
+    ViewData["Title"] = "Nuestras Sucursales";
+}
+@model IEnumerable<OC.Core.Domain.Entities.Sucursal>
+
+<div class="container my-5 pt-5">
+
+    <div class="text-center mb-5 animate-on-scroll">
+        <h6 class="text-uppercase tracking-wide mb-2" style="color: var(--brand-accent); letter-spacing: 2px;">Encuéntranos</h6>
+        <h1 class="display-5 fw-bold text-white">Nuestras Sucursales</h1>
+        <p class="text-light opacity-75 mb-0">Visítanos y recibe atención oftalmológica de primer nivel.</p>
+    </div>
+
+    <div class="row mb-5 animate-on-scroll">
+        <div class="col-12">
+            <div class="card card-premium shadow-lg border-0 overflow-hidden" style="border-radius: 16px;">
+                <div class="card-body p-2">
+                    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3930.0402681624164!2d-84.0778783!3d9.9306045!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8fa0e367a9fc9151%3A0x52cf5ecceb00c31a!2s%C3%93ptica%20Comunal!5e0!3m2!1ses!2scr!4v1775895575312!5m2!1ses!2scr"
+                            width="100%" height="450" style="border:0; border-radius: 12px;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4 g-lg-5">
+        @foreach (var suc in Model)
+        {
+            <div class="col-12 col-md-6 col-lg-4 animate-on-scroll">
+                <div class="card card-premium h-100 shadow-sm border-0">
+                    <div class="card-body d-flex flex-column p-4">
+
+                        <div class="d-flex align-items-center mb-4">
+                            <div class="rounded-circle d-flex align-items-center justify-content-center me-3 shadow-sm" style="width: 48px; height: 48px; background: rgba(14, 165, 233, 0.1);">
+                                <i class="bi bi-shop fs-4 text-primary"></i>
+                            </div>
+                            <h5 class="card-title text-white fw-bold m-0">@suc.Nombre</h5>
+                        </div>
+
+                        <div class="mb-4 flex-grow-1">
+                            <p class="mb-3 text-light opacity-75 small">
+                                <i class="bi bi-geo-alt me-2 text-primary"></i> @suc.Direccion
+                            </p>
+
+                            <p class="mb-2 text-light opacity-75 small">
+                                <i class="bi bi-telephone me-2 text-primary"></i>
+                                <a href="tel:@suc.Telefono?.Replace(" ", "").Replace("-", "")" class="text-white text-decoration-none hover-primary transition">@suc.Telefono</a>
+                            </p>
+
+                            @if (!string.IsNullOrEmpty(suc.TelefonoAdicional))
+                            {
+                                <p class="mb-2 text-light opacity-75 small">
+                                    <i class="bi bi-phone me-2 text-primary"></i>
+                                    <a href="tel:@suc.TelefonoAdicional.Replace(" ", "").Replace("-", "")" class="text-white text-decoration-none hover-primary transition">@suc.TelefonoAdicional</a>
+                                </p>
+                            }
+                        </div>
+
+                        @if (!string.IsNullOrEmpty(suc.HorarioAtencion))
+                        {
+                            <div class="mt-auto pt-3 border-top" style="border-color: var(--glass-border) !important;">
+                                <p class="mb-0 text-light opacity-75 small">
+                                    <i class="bi bi-clock me-2 text-primary"></i> @suc.HorarioAtencion
+                                </p>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>

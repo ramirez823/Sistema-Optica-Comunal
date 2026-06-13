@@ -1,0 +1,95 @@
+@model IEnumerable<OC.Core.Domain.Entities.Sucursal>
+@{
+    Layout = "_LayoutLanding";
+    ViewData["Title"] = "Contacto";
+}
+
+<div class="container my-5 pt-5">
+    <div class="animate-on-scroll">
+        <h1 class="text-center display-5 fw-bold mb-3">Contáctanos</h1>
+        <p class="text-center text-light opacity-75 mb-5">Todas nuestras sucursales activas. Los datos se actualizan automáticamente al agregar sucursales en el sistema.</p>
+    </div>
+
+    <div class="row g-4 mb-5">
+        <div class="col-12 col-lg-4 animate-on-scroll">
+            <div class="card h-100 shadow-lg border-0 card-premium">
+                <div class="card-body p-4">
+                    <h5 class="card-title fw-bold mb-4"><i class="bi bi-building text-primary me-2"></i> Casa matriz (corporativo)</h5>
+                    <p class="mb-3 text-light"><i class="bi bi-geo-alt me-2 text-primary"></i> San José, Costa Rica</p>
+                    <p class="mb-3"><i class="bi bi-telephone me-2 text-primary"></i> <a href="tel:+50622211187" class="text-white text-decoration-none hover-primary transition">2221-1187</a></p>
+                    <p class="mb-3"><i class="bi bi-envelope me-2 text-primary"></i> <a href="mailto:lentesyprocesos@hotmail.com" class="text-white text-decoration-none hover-primary transition">lentesyprocesos@hotmail.com</a></p>
+
+                    <hr class="border-secondary my-4">
+
+                    <p class="mt-2 mb-0">
+                        <a href="https://wa.me/50686970611" target="_blank" rel="noopener" class="btn btn-outline-light w-100 d-flex align-items-center justify-content-center gap-2">
+                            <i class="bi bi-whatsapp text-success fs-5"></i> WhatsApp Directo
+                        </a>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-lg-8">
+            <div class="row g-3">
+                @foreach (var s in Model)
+                {
+                    <div class="col-12 col-md-6 animate-on-scroll">
+                        <div class="card h-100 shadow-sm border-0 card-premium">
+                            <div class="card-body p-4 d-flex flex-column">
+                                <h5 class="card-title text-primary fw-bold mb-3">@s.Nombre</h5>
+                                <p class="mb-3 small text-light"><i class="bi bi-geo-alt me-2"></i> @s.Direccion</p>
+
+                                @if (!string.IsNullOrWhiteSpace(s.Telefono))
+                                {
+                                    <p class="mb-2 small"><i class="bi bi-telephone me-2"></i> <a href="tel:@s.Telefono.Replace(" ", "").Replace("-", "")" class="text-white text-decoration-none hover-primary transition">@s.Telefono</a></p>
+                                }
+
+                                @if (!string.IsNullOrWhiteSpace(s.TelefonoAdicional))
+                                {
+                                    <p class="mb-2 small text-light"><i class="bi bi-phone me-2"></i> @s.TelefonoAdicional</p>
+                                }
+
+                                @if (!string.IsNullOrWhiteSpace(s.HorarioAtencion))
+                                {
+                                    <div class="mt-auto pt-3 border-top border-secondary">
+                                        <p class="mb-0 small text-light opacity-75"><i class="bi bi-clock me-2"></i> @s.HorarioAtencion</p>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-5 animate-on-scroll">
+        <div class="col-12 col-lg-8 mx-auto">
+            <div class="card shadow-lg border-0 card-premium">
+                <div class="card-body p-4 p-md-5">
+                    <h4 class="card-title fw-bold mb-2"><i class="bi bi-chat-dots text-primary me-2"></i> Escríbenos</h4>
+                    <p class="text-light opacity-75 small mb-4">Este formulario es de referencia; el envío por correo puede configurarse después.</p>
+
+                    <form id="contactForm" method="post" action="/landing/enviar-contacto">
+                        <div class="row">
+                            <div class="col-md-6 mb-4">
+                                <label class="form-label text-light fw-medium">Nombre</label>
+                                <input type="text" name="nombre" class="form-control input-premium" required placeholder="Tu nombre completo" />
+                            </div>
+                            <div class="col-md-6 mb-4">
+                                <label class="form-label text-light fw-medium">Correo electrónico</label>
+                                <input type="email" name="email" class="form-control input-premium" required placeholder="tucorreo@ejemplo.com" />
+                            </div>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label text-light fw-medium">Mensaje</label>
+                            <textarea name="mensaje" class="form-control input-premium" rows="4" required placeholder="¿En qué podemos ayudarte?"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-premium w-100">Enviar mensaje <i class="bi bi-send ms-2"></i></button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

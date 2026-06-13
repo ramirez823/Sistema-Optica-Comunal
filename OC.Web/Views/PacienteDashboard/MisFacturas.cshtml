@@ -1,0 +1,41 @@
+@model List<OC.Core.Domain.Entities.Venta>
+
+<div class="card-dashboard">
+    <h4>Mis facturas</h4>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info">
+            No se encontraron facturas
+        </div>
+    }
+    else
+    {
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Número de factura</th>
+                    <th>Fecha</th>
+                    <th>Monto</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var f in Model)
+                {
+                    <tr>
+                        <td>@(string.IsNullOrWhiteSpace(f.NumeroFactura) ? $"FAC-{f.Id:D6}" : f.NumeroFactura)</td>
+                        <td>@f.FechaVenta.ToString("dd/MM/yyyy HH:mm")</td>
+                        <td>₡ @f.Total.ToString("N2")</td>
+                        <td class="text-end">
+                            <a href="/landing/factura/@f.Id" class="btn btn-sm btn-outline-primary">
+                                Ver factura
+                            </a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>
+

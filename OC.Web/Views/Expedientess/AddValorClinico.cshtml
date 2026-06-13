@@ -1,0 +1,231 @@
+﻿@model OC.Web.ViewModels.ValorClinicoViewModel
+
+<div class="card-dashboard">
+    <h4 class="mb-4"><i class="bi bi-clipboard2-pulse me-2"></i>Agregar Valor Clínico</h4>
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="alert alert-info mb-4">
+        <div class="row">
+            <div class="col-md-6">
+                <strong><i class="bi bi-person"></i> Paciente:</strong> @Model.NombrePaciente
+            </div>
+            <div class="col-md-6">
+                <strong><i class="bi bi-file-text"></i> Motivo:</strong> @Model.MotivoConsulta
+            </div>
+        </div>
+    </div>
+
+    <form asp-action="AddValorClinico" method="post">
+        <input type="hidden" name="ExpedienteId" value="@Model.ExpedienteId" />
+
+        <!-- Diagnóstico -->
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <i class="bi bi-chat-text"></i> Diagnóstico
+            </div>
+            <div class="card-body">
+                <textarea asp-for="Diagnostico" class="form-control" rows="3" placeholder="Describa el diagnóstico..."></textarea>
+                <span asp-validation-for="Diagnostico" class="text-danger"></span>
+            </div>
+        </div>
+
+        <!-- Refracción (pestañas) -->
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <i class="bi bi-eye"></i> Refracción (Graduación)
+            </div>
+            <div class="card-body">
+                <ul class="nav nav-tabs mb-3" id="refraccionTab" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="od-tab" data-bs-toggle="tab" data-bs-target="#od" type="button" role="tab">Ojo Derecho (OD)</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="oi-tab" data-bs-toggle="tab" data-bs-target="#oi" type="button" role="tab">Ojo Izquierdo (OI)</button>
+                    </li>
+                </ul>
+                <div class="tab-content">
+                    <div class="tab-pane fade show active" id="od" role="tabpanel">
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label asp-for="EsferaOD" class="form-label fw-semibold"></label>
+                                <div class="input-group">
+                                    <input asp-for="EsferaOD" class="form-control" type="number" step="0.25" placeholder="Ej: -2.00" />
+                                    <span class="input-group-text">D</span>
+                                </div>
+                                <span asp-validation-for="EsferaOD" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label asp-for="CilindroOD" class="form-label fw-semibold"></label>
+                                <div class="input-group">
+                                    <input asp-for="CilindroOD" class="form-control" type="number" step="0.25" placeholder="Ej: -0.75" />
+                                    <span class="input-group-text">D</span>
+                                </div>
+                                <span asp-validation-for="CilindroOD" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label asp-for="EjeOD" class="form-label fw-semibold"></label>
+                                <div class="input-group">
+                                    <input asp-for="EjeOD" class="form-control" type="number" step="1" min="0" max="180" placeholder="0 - 180" />
+                                    <span class="input-group-text">°</span>
+                                </div>
+                                <span asp-validation-for="EjeOD" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label asp-for="ADD_Od" class="form-label fw-semibold">Adición (ADD)</label>
+                                <div class="input-group">
+                                    <input asp-for="ADD_Od" class="form-control" type="number" step="0.25" placeholder="Ej: +2.00" />
+                                    <span class="input-group-text">D</span>
+                                </div>
+                                <span asp-validation-for="ADD_Od" class="text-danger"></span>
+                                <small class="text-muted">Solo para progresivos/bifocales</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="oi" role="tabpanel">
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label asp-for="EsferaOI" class="form-label fw-semibold"></label>
+                                <div class="input-group">
+                                    <input asp-for="EsferaOI" class="form-control" type="number" step="0.25" placeholder="Ej: -1.50" />
+                                    <span class="input-group-text">D</span>
+                                </div>
+                                <span asp-validation-for="EsferaOI" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label asp-for="CilindroOI" class="form-label fw-semibold"></label>
+                                <div class="input-group">
+                                    <input asp-for="CilindroOI" class="form-control" type="number" step="0.25" placeholder="Ej: -0.50" />
+                                    <span class="input-group-text">D</span>
+                                </div>
+                                <span asp-validation-for="CilindroOI" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label asp-for="EjeOI" class="form-label fw-semibold"></label>
+                                <div class="input-group">
+                                    <input asp-for="EjeOI" class="form-control" type="number" step="1" min="0" max="180" placeholder="0 - 180" />
+                                    <span class="input-group-text">°</span>
+                                </div>
+                                <span asp-validation-for="EjeOI" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label asp-for="ADD_Oi" class="form-label fw-semibold">Adición (ADD)</label>
+                                <div class="input-group">
+                                    <input asp-for="ADD_Oi" class="form-control" type="number" step="0.25" placeholder="Ej: +2.00" />
+                                    <span class="input-group-text">D</span>
+                                </div>
+                                <span asp-validation-for="ADD_Oi" class="text-danger"></span>
+                                <small class="text-muted">Solo para progresivos/bifocales</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Agudeza Visual -->
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <i class="bi bi-eye"></i> Agudeza Visual (AV)
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <label asp-for="AvOdLejos" class="form-label">OD (lejos)</label>
+                        <input asp-for="AvOdLejos" class="form-control" placeholder="Ex: 20/20" />
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label asp-for="AvOiLejos" class="form-label">OI (lejos)</label>
+                        <input asp-for="AvOiLejos" class="form-control" placeholder="Ex: 20/20" />
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label asp-for="AvOdCerca" class="form-label">OD (cerca)</label>
+                        <input asp-for="AvOdCerca" class="form-control" placeholder="Ex: 20/25 or J2" />
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label asp-for="AvOiCerca" class="form-label">OI (cerca)</label>
+                        <input asp-for="AvOiCerca" class="form-control" placeholder="Ex: 20/25 or J2" />
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Presión Intraocular -->
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <i class="bi bi-droplet"></i> Presión Intraocular (PIO)
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="PioOd" class="form-label">OD (mmHg)</label>
+                        <input asp-for="PioOd" class="form-control" type="number" step="0.1" placeholder="Ex: 14" />
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="PioOi" class="form-label">OI (mmHg)</label>
+                        <input asp-for="PioOi" class="form-control" type="number" step="0.1" placeholder="Ex: 14" />
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Otras pruebas -->
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <i class="bi bi-clipboard-data"></i> Otras Pruebas
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="PercepcionColores" class="form-label">Percepción de colores</label>
+                        <select asp-for="PercepcionColores" class="form-select">
+                            <option value="">-- Seleccione --</option>
+                            <option value="Normal">Normal</option>
+                            <option value="Deficiente">Deficiente</option>
+                            <option value="Daltonismo (protan)">Daltonismo (protan)</option>
+                            <option value="Daltonismo (deutan)">Daltonismo (deutan)</option>
+                            <option value="Daltonismo (tritan)">Daltonismo (tritan)</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="MotilidadOcular" class="form-label">Motilidad ocular</label>
+                        <input asp-for="MotilidadOcular" class="form-control" placeholder="Ex: Normal, Exophoria 2 PD" />
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="FondoOjo" class="form-label">Fondo de ojo</label>
+                        <input asp-for="FondoOjo" class="form-control" placeholder="Ex: No alterations / C/D 0.3" />
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="CampoVisual" class="form-label">Campo visual</label>
+                        <input asp-for="CampoVisual" class="form-control" placeholder="Ex: Normal / Paracentral scotoma" />
+                    </div>
+                    <div class="col-12 mb-3">
+                        <label asp-for="Observaciones" class="form-label">Observaciones adicionales</label>
+                        <textarea asp-for="Observaciones" class="form-control" rows="2" placeholder="Notas relevantes..."></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-end gap-2">
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-save"></i> Guardar valor clínico
+            </button>
+            <a asp-action="Details" asp-route-id="@Model.ExpedienteId" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Volver
+            </a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

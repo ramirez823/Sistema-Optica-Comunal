@@ -1,0 +1,136 @@
+@{
+    var paciente = ViewBag.Paciente as OC.Core.Domain.Entities.Paciente;
+    var citas = ViewBag.Citas as List<OC.Core.Domain.Entities.Cita> ?? new List<OC.Core.Domain.Entities.Cita>();
+    var recordatorios = ViewBag.Recordatorios as List<OC.Core.Domain.Entities.Cita> ?? new List<OC.Core.Domain.Entities.Cita>();
+    var canceladasRecientes = ViewBag.CanceladasRecientes as List<OC.Core.Domain.Entities.Cita> ?? new List<OC.Core.Domain.Entities.Cita>();
+    var citasHoy = ViewBag.CitasHoy as List<OC.Core.Domain.Entities.Cita> ?? new List<OC.Core.Domain.Entities.Cita>();
+}
+
+<div class="card-dashboard">
+    <h4>Bienvenido, @paciente?.NombreCompleto</h4>
+
+    @if (citasHoy.Any())
+    {
+        <div class="alert alert-warning alert-dismissible fade show border-2 border-dark" role="alert">
+            <strong><i class="bi bi-calendar-event me-2"></i>Recordatorio — Cita(s) para hoy:</strong>
+            Tiene @citasHoy.Count cita(s) agendada(s) para hoy. No olvide asistir:
+            @foreach (var c in citasHoy.Take(5))
+            {
+                <span class="d-block mt-1">@c.FechaHora.ToString("dd/MM/yyyy HH:mm") — @(c.Sucursal?.Nombre ?? "Sede") <span class="badge bg-dark ms-1">@c.Estado</span></span>
+            }
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (canceladasRecientes.Any())
+    {
+        <div class="alert alert-warning alert-dismissible fade show border-2 border-dark" style="background-color:#ffb74d;border-color:#f57c00;color:#3e2723;" role="alert">
+            <strong><i class="bi bi-exclamation-triangle-fill me-2"></i>Atención:</strong>
+            La(s) siguiente(s) cita(s) fue(ron) cancelada(s) y ya no se realizará(n). Si desea, puede reservar una nueva:
+            @foreach (var c in canceladasRecientes.Take(5))
+            {
+                <span class="d-block mt-1">@c.FechaHora.ToString("dd/MM/yyyy HH:mm") — @(c.Sucursal?.Nombre ?? "Sede") <span class="badge bg-dark ms-1">Cancelada</span></span>
+            }
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (recordatorios.Any())
+    {
+        <div class="alert alert-primary alert-dismissible fade show" role="alert">
+            <strong><i class="bi bi-bell me-2"></i>Recordatorio:</strong>
+            Tiene @recordatorios.Count cita(s) próxima(s):
+            @foreach (var r in recordatorios.Take(3))
+            {
+                <span class="d-block">@r.FechaHora.ToString("dd/MM/yyyy HH:mm") @(r.Sucursal?.Nombre ?? "Sede") — @r.Estado</span>
+            }
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <p class="mb-3">
+        <a asp-action="AgendarCita" class="btn btn-brand">
+            <i class="bi bi-calendar-plus"></i> Reservar mi cita
+        </a>
+        <a asp-controller="CitasPublicas" asp-action="MiHistorial" class="btn btn-outline-secondary">
+            <i class="bi bi-clipboard2-pulse"></i> Ver mi historial clínico
+        </a>
+        <span class="text-muted small d-block mt-2">Elija sede, fecha y horario (L-D 8:00-18:00, slots de 30 min). Desde aquí también puede ver sus consultas ya atendidas.</span>
+    </p>
+
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="bi bi-calendar-check"></i> Mis Citas Programadas
+                    </h5>
+                    <p class="card-text">@citas.Count cita(s) programada(s)</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <h5>Mis Citas</h5>
+    @if (!citas.Any())
+    {
+        <p>No tiene citas programadas.</p>
+    }
+    else
+    {
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Fecha y Hora</th>
+                    <th>Sede</th>
+                    <th>Estado</th>
+                    <th>Observaciones</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var cita in citas)
+                {
+                    <tr>
+                        <td>@cita.FechaHora.ToString("dd/MM/yyyy HH:mm")</td>
+                        <td>@(cita.Sucursal?.Nombre ?? "—")</td>
+                        <td>
+                            @if (cita.Estado == "Confirmada") { <span class="badge bg-primary">Confirmada</span> }
+                            else if (cita.Estado == "Atendida") { <span class="badge bg-success">Atendida</span> }
+                            else if (cita.Estado == "Cancelada") { <span class="badge bg-secondary">Cancelada</span> }
+                            else if (cita.Estado == "Pendiente") { <span class="badge bg-warning text-dark">Pendiente</span> }
+                            else { <span class="badge bg-secondary">@cita.Estado</span> }
+                        </td>
+                        <td>@(cita.MotivoConsulta ?? "Sin observaciones")</td>
+                        <td>
+                            @if (cita.Estado == "Confirmada" || cita.Estado == "Pendiente")
+                            {
+                                <a asp-action="EditarMiCita" asp-route-id="@cita.Id" class="btn btn-sm btn-outline-primary">Cambiar horario</a>
+                            }
+                            else
+                            {
+                                <span class="text-muted">—</span>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>

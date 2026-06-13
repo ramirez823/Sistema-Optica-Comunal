@@ -1,0 +1,476 @@
+﻿@model OC.Core.Domain.Entities.Planilla
+@{
+    Layout = null;
+    if (Model == null)
+    {
+        <h1 style="color: red;">Error: No se encontró la planilla.</h1>
+        <p>La planilla no existe o no se pudo cargar.</p>
+        <a href="/Planillas/Index">Volver al listado</a>
+        return;
+    }
+    if (Model.Usuario == null)
+    {
+        <h1 style="color: red;">Error: La planilla no tiene información del empleado.</h1>
+        <p>Es posible que el empleado haya sido eliminado o no se haya cargado correctamente. Asegúrate de que en el controlador se use <code>includeProperties: "Usuario"</code>.</p>
+        <a href="/Planillas/Index">Volver al listado</a>
+        return;
+    }
+}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Comprobante de Salario — @Model.Usuario.Nombre</title>
+    <style>
+            *, *::before, *::after {
+                box-sizing: border-box;
+                margin: 0;
+                padding: 0;
+            }
+
+            body {
+                font-family: 'Segoe UI', Arial, sans-serif;
+                font-size: 13px;
+                color: #1a1a1a;
+                background: #f0f0f0;
+            }
+
+            .page {
+                width: 210mm;
+                min-height: 297mm;
+                margin: 20px auto;
+                background: #fff;
+                padding: 14mm 14mm 12mm;
+                box-shadow: 0 4px 24px rgba(0,0,0,.15);
+            }
+
+            /* ── Encabezado ─────────────────────────────────────────── */
+            .header {
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-start;
+                padding-bottom: 12px;
+                border-bottom: 3px solid #1a3c6e;
+                margin-bottom: 18px;
+            }
+
+            .logo-area {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+            }
+
+                .logo-area h1 {
+                    font-size: 22px;
+                    font-weight: 700;
+                    color: #1a3c6e;
+                    letter-spacing: -.5px;
+                }
+
+                .logo-area p {
+                    font-size: 11px;
+                    color: #666;
+                    margin-top: 2px;
+                }
+
+            .comprobante-id {
+                text-align: right;
+            }
+
+                .comprobante-id .numero {
+                    font-size: 18px;
+                    font-weight: 700;
+                    color: #1a3c6e;
+                }
+
+                .comprobante-id .periodo {
+                    font-size: 11px;
+                    color: #666;
+                    margin-top: 2px;
+                }
+
+            /* ── Partes involucradas ─────────────────────────────────── */
+            .partes {
+                display: flex;
+                gap: 20px;
+                margin-bottom: 20px;
+            }
+
+            .parte {
+                flex: 1;
+                background: #f8f9fc;
+                border-left: 3px solid #1a3c6e;
+                padding: 10px 12px;
+                border-radius: 0 4px 4px 0;
+            }
+
+                .parte h3 {
+                    font-size: 10px;
+                    font-weight: 700;
+                    text-transform: uppercase;
+                    letter-spacing: .8px;
+                    color: #1a3c6e;
+                    margin-bottom: 6px;
+                }
+
+                .parte p {
+                    font-size: 12px;
+                    line-height: 1.6;
+                    color: #333;
+                }
+
+            /* ── Sección títulos ────────────────────────────────────── */
+            .tabla-titulo {
+                font-size: 10px;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: .8px;
+                color: #1a3c6e;
+                margin-bottom: 6px;
+                margin-top: 16px;
+            }
+
+            /* ── Tablas ─────────────────────────────────────────────── */
+            table.detalle {
+                width: 100%;
+                border-collapse: collapse;
+                margin-bottom: 4px;
+            }
+
+                table.detalle thead th {
+                    background: #1a3c6e;
+                    color: #fff;
+                    font-size: 11px;
+                    font-weight: 600;
+                    padding: 7px 10px;
+                    text-align: left;
+                }
+
+                    table.detalle thead th.right {
+                        text-align: right;
+                    }
+
+                    table.detalle thead th.center {
+                        text-align: center;
+                    }
+
+                table.detalle tbody tr:nth-child(even) {
+                    background: #f4f6fb;
+                }
+
+                table.detalle tbody td {
+                    padding: 7px 10px;
+                    font-size: 12px;
+                    border-bottom: 1px solid #e8eaf0;
+                    vertical-align: middle;
+                }
+
+                    table.detalle tbody td.right {
+                        text-align: right;
+                        font-variant-numeric: tabular-nums;
+                    }
+
+                    table.detalle tbody td.center {
+                        text-align: center;
+                        font-variant-numeric: tabular-nums;
+                    }
+
+                table.detalle tfoot td {
+                    padding: 7px 10px;
+                    font-size: 12px;
+                    font-weight: 700;
+                    background: #eef1f8;
+                    border-top: 2px solid #1a3c6e;
+                }
+
+            /* ── Columnas ingresos / deducciones ────────────────────── */
+            .dos-columnas {
+                display: flex;
+                gap: 20px;
+                margin-top: 16px;
+            }
+
+                .dos-columnas > div {
+                    flex: 1;
+                }
+
+            /* ── Total final ────────────────────────────────────────── */
+            .total-box {
+                display: flex;
+                justify-content: flex-end;
+                margin-top: 16px;
+                margin-bottom: 20px;
+            }
+
+            .total-inner {
+                border-top: 2px solid #1a3c6e;
+                padding-top: 10px;
+                min-width: 280px;
+                text-align: right;
+            }
+
+            .total-row {
+                display: flex;
+                justify-content: space-between;
+                font-size: 12px;
+                color: #555;
+                margin-bottom: 4px;
+            }
+
+                .total-row.final {
+                    font-size: 16px;
+                    font-weight: 700;
+                    color: #1a3c6e;
+                    margin-top: 6px;
+                    border-top: 1px solid #c8d4e8;
+                    padding-top: 6px;
+                }
+
+            /* ── Firma ──────────────────────────────────────────────── */
+            .firma-area {
+                margin-top: 40px;
+                display: flex;
+                justify-content: flex-start;
+            }
+
+            .firma-linea {
+                text-align: center;
+                min-width: 220px;
+            }
+
+                .firma-linea .linea {
+                    border-top: 1px solid #333;
+                    margin-bottom: 4px;
+                }
+
+                .firma-linea p {
+                    font-size: 11px;
+                    color: #555;
+                }
+
+            /* ── Pie de página ───────────────────────────────────────── */
+            .footer {
+                border-top: 1px solid #dde1ea;
+                padding-top: 10px;
+                text-align: center;
+                font-size: 10px;
+                color: #999;
+                margin-top: 30px;
+            }
+
+            /* ── Botones (solo en pantalla) ──────────────────────────── */
+            .acciones {
+                width: 210mm;
+                margin: 0 auto 12px;
+                display: flex;
+                justify-content: space-between;
+            }
+
+            .btn-accion {
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                padding: 8px 20px;
+                border-radius: 5px;
+                font-size: 13px;
+                font-weight: 600;
+                cursor: pointer;
+                border: none;
+                text-decoration: none;
+            }
+
+            .btn-volver {
+                background: #e9ecef;
+                color: #333;
+            }
+
+            .btn-print {
+                background: #1a3c6e;
+                color: #fff;
+            }
+
+            @@media print {
+                body {
+                    background: white;
+                }
+
+                .acciones {
+                    display: none;
+                }
+
+                .page {
+                    box-shadow: none;
+                    margin: 0;
+                    padding: 10mm;
+                    width: 100%;
+                    min-height: auto;
+                }
+            }
+    </style>
+</head>
+<body>
+
+    <!-- Botones de acción -->
+    <div class="acciones">
+        <a href="@ViewBag.ReturnUrl" class="btn-accion btn-volver">← Volver a Planillas</a>
+        <button onclick="window.print()" class="btn-accion btn-print">🖨 Imprimir / Guardar PDF</button>
+    </div>
+
+    <div class="page">
+
+        <!-- ── Encabezado ──────────────────────────────────────────────── -->
+        <div class="header">
+            <div class="logo-area">
+                <img src="/uploads/productos/logo.png" alt="Óptica Comunal" height="45" />
+                <div>
+                    <h1>Óptica Comunal</h1>
+                    <p>Comprobante de Salario Acreditado</p>
+                </div>
+            </div>
+            <div class="comprobante-id">
+                <div class="numero">@(Model.NumeroComprobante ?? "Sin asignar")</div>
+                <div class="periodo">Planilla: @Model.Mes / @Model.Año</div>
+            </div>
+        </div>
+
+        <!-- ── Datos del empleado ─────────────────────────────────────── -->
+        <div class="partes">
+            <div class="parte">
+                <h3>Empleado</h3>
+                <p>
+                    <strong>@Model.Usuario.Nombre</strong><br />
+                    Cédula: @(Model.Usuario.Cedula ?? "No especificada")<br />
+                    Salario Base: ₡@(Model.Usuario.SalarioBase?.ToString("N2") ?? "0.00")
+                </p>
+            </div>
+            <div class="parte">
+                <h3>Período</h3>
+                <p>
+                    <strong>Mes @Model.Mes, @Model.Año</strong><br />
+                    N.° Comprobante: @(Model.NumeroComprobante ?? "Sin asignar")
+                </p>
+            </div>
+        </div>
+
+        <!-- ── Horas registradas ──────────────────────────────────────── -->
+        <p class="tabla-titulo">Horas Registradas</p>
+        <table class="detalle">
+            <thead>
+                <tr>
+                    <th class="center">Horas Base</th>
+                    <th class="center">Total Horas</th>
+                    <th class="center">Vacaciones</th>
+                    <th class="center">Incap. Parcial</th>
+                    <th class="center">Incap. Total</th>
+                    <th class="center">Permiso</th>
+                    <th class="center">Extras</th>
+                    <th class="center">Dobles</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="center">@Model.HorasBase</td>
+                    <td class="center">@Model.TotalHoras</td>
+                    <td class="center">@Model.HorasVacaciones</td>
+                    <td class="center">@Model.HorasIncapacidadParcial</td>
+                    <td class="center">@Model.HorasIncapacidadTotal</td>
+                    <td class="center">@Model.HorasPermiso</td>
+                    <td class="center">@Model.HorasExtras</td>
+                    <td class="center">@Model.HorasDobles</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- ── Ingresos y Deducciones ─────────────────────────────────── -->
+        <div class="dos-columnas">
+            <div>
+                <p class="tabla-titulo">Ingresos</p>
+                <table class="detalle">
+                    <thead>
+                        <tr>
+                            <th>Concepto</th>
+                            <th class="right">Monto</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>Salario Ordinario</td><td class="right">₡@Model.SalarioOrdinario.ToString("N2")</td></tr>
+                        <tr><td>Horas Extras Comunes</td><td class="right">₡@Model.ValorHorasExtras.ToString("N2")</td></tr>
+                        <tr><td>Horas Extras Dobles</td><td class="right">₡@Model.ValorHorasDobles.ToString("N2")</td></tr>
+                        <tr><td>Vacaciones</td><td class="right">₡@Model.ValorVacaciones.ToString("N2")</td></tr>
+                        <tr><td>Incapacidad Parcial</td><td class="right">₡@Model.ValorIncapacidadParcial.ToString("N2")</td></tr>
+                        <tr><td>Incapacidad Total</td><td class="right">₡@Model.ValorIncapacidadTotal.ToString("N2")</td></tr>
+                        <tr><td>Comisiones</td><td class="right">₡@Model.Comisiones.ToString("N2")</td></tr>
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td>Total Ingresos</td>
+                            <td class="right">₡@Model.TotalIngresos.ToString("N2")</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+            <div>
+                <p class="tabla-titulo">Deducciones</p>
+                <table class="detalle">
+                    <thead>
+                        <tr>
+                            <th>Concepto</th>
+                            <th class="right">Monto</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>C.C.S.S</td><td class="right">₡@Model.MontoCCSS.ToString("N2")</td></tr>
+                        <tr><td>Préstamos</td><td class="right">₡@Model.Prestamos.ToString("N2")</td></tr>
+                        <tr><td>Embargos y Pensiones</td><td class="right">₡@Model.EmbargosPensiones.ToString("N2")</td></tr>
+                        <tr><td>Impuesto sobre la Renta</td><td class="right">₡@Model.MontoImpuestoRenta.ToString("N2")</td></tr>
+                        <tr><td>Cuentas por Cobrar</td><td class="right">₡@Model.CuentasPorCobrar.ToString("N2")</td></tr>
+                        <tr><td>Asociación Solidarista</td><td class="right">₡@Model.MontoSolidarista.ToString("N2")</td></tr>
+                        <tr><td>Adelanto de Quincena</td><td class="right">₡@Model.AdelantoQuincena.ToString("N2")</td></tr>
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td>Total Deducciones</td>
+                            <td class="right">₡@Model.TotalDeducciones.ToString("N2")</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+
+        <!-- ── Resumen final ──────────────────────────────────────────── -->
+        <div class="total-box">
+            <div class="total-inner">
+                <div class="total-row">
+                    <span>Total Ingresos</span>
+                    <span>₡@Model.TotalIngresos.ToString("N2")</span>
+                </div>
+                <div class="total-row">
+                    <span>Total Deducciones</span>
+                    <span>₡@Model.TotalDeducciones.ToString("N2")</span>
+                </div>
+                <div class="total-row final">
+                    <span>Salario Neto</span>
+                    <span>₡@Model.SalarioNeto.ToString("N2")</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Firma ──────────────────────────────────────────────────── -->
+        <div class="firma-area">
+            <div class="firma-linea">
+                <div class="linea"></div>
+                <p>Firma del Empleado</p>
+            </div>
+        </div>
+
+        <!-- ── Pie ───────────────────────────────────────────────────── -->
+        <div class="footer">
+            Documento generado el @DateTime.Now.ToString("dd/MM/yyyy HH:mm") —
+            Comprobante interno de nómina. Óptica Comunal © @DateTime.Now.Year
+        </div>
+
+    </div>
+</body>
+</html>

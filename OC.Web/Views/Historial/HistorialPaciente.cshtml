@@ -1,0 +1,91 @@
+@model IEnumerable<OC.Core.Domain.Entities.Cita>
+
+<div class="card-dashboard">
+    <h4>Historial Clínico del Paciente</h4>
+
+    <a asp-controller="Expedientess" asp-action="PorPaciente" asp-route-pacienteId="@ViewBag.PacienteId" class="btn btn-outline-primary mb-3">
+        Ver todos los expedientes
+    </a>
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (!Model.Any())
+    {
+        <p>No hay citas atendidas para este paciente.</p>
+    }
+    else
+    {
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Paciente</th>
+                    <th>Resultado</th>
+                    <th>Detalles del Expediente</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var c in Model)
+                {
+                    <tr>
+                        <td>@c.FechaCreacion.ToString("dd/MM/yyyy")</td>
+                        <td>@c.Paciente?.NombreCompleto</td>
+                        <td>@c.ObservacionesEspecialista</td>
+                        <td>
+                            @if (c.Expediente != null)
+                            {
+                                <div>
+                                    <strong>Motivo:</strong> @c.Expediente.MotivoConsulta<br />
+                                    <strong>Fecha registro:</strong> @c.Expediente.FechaRegistro.ToString("dd/MM/yyyy")
+                                </div>
+                            }
+                            else
+                            {
+                                <span class="text-muted">Sin expediente</span>
+                            }
+                        </td>
+                        <td>
+                            @if (c.Expediente == null)
+                            {
+                                <a asp-controller="Expedientess"
+                                   asp-action="Create"
+                                   asp-route-citaId="@c.Id"
+                                   class="btn btn-sm btn-success">
+                                    Registrar
+                                </a>
+                            }
+                            else
+                            {
+                                <div class="btn-group" role="group">
+                                    <a asp-controller="Expedientess"
+                                       asp-action="Details"
+                                       asp-route-id="@c.Expediente.Id"
+                                       class="btn btn-sm btn-info">
+                                        Ver
+                                    </a>
+                                    <a asp-controller="Expedientess"
+                                       asp-action="Edit"
+                                       asp-route-id="@c.Expediente.Id"
+                                       class="btn btn-sm btn-warning">
+                                        Editar
+                                    </a>
+                                </div>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+
+    <a asp-action="Index" asp-controller="Pacientes" class="btn btn-secondary">
+        Volver a Pacientes
+    </a>
+</div>

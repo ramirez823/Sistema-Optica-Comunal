@@ -1,0 +1,72 @@
+@{
+    Layout = "_LayoutLanding";
+    ViewData["Title"] = "Estado de mi orden";
+    var pagination = new OC.Web.Models.PaginationInfo
+    {
+        CurrentPage = Model.PageIndex,
+        TotalPages = Model.TotalPages,
+        GetPageUrl = (page) => Url.Action("EstadoOrden", new { page }) ?? "#"
+    };
+}
+@model OC.Core.Common.PagedResult<OC.Core.Domain.Entities.OrdenTrabajo>
+
+<div class="container my-5 landing-paciente">
+    <h1 class="text-center mb-4">Estado de mi orden de lentes</h1>
+
+    @if (!Model.Items.Any())
+    {
+        <div class="card card-premium text-center p-4">
+            <p class="landing-subtitle mb-0">No tienes ordenes de trabajo registradas.</p>
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive card card-premium p-2">
+            <table class="table table-striped align-middle landing-table-dark mb-0">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Referencia</th>
+                        <th>Fecha de creación</th>
+                        <th>Estado</th>
+                        <th>Sucursal</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var orden in Model.Items)
+                    {
+                        <tr>
+                            <td>@orden.Referencia</td>
+                            <td>@orden.FechaCreacion.ToString("dd/MM/yyyy")</td>
+                            <td>
+                                @switch (orden.Estado)
+                                {
+                                    case "Recibida":
+                                        <span class="badge bg-secondary">Recibida</span>
+                                        break;
+                                    case "EnProceso":
+
+                                        <span class="badge bg-primary">En proceso</span>
+                                        break;
+                                    case "Lista":
+
+                                        <span class="badge bg-success">Lista para retirar</span>
+                                        break;
+                                    case "Entregada":
+
+                                        <span class="badge bg-info">Entregada</span>
+                                        break;
+                                    default:
+
+                                        <span class="badge bg-secondary">@orden.Estado</span>
+                                        break;
+                                }
+                            </td>
+                            <td>@orden.Sucursal?.Nombre</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <partial name="_Pagination" model="pagination" />
+    }
+</div>

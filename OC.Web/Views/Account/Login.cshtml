@@ -1,0 +1,608 @@
+@model OC.Web.ViewModels.LoginViewModel
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Iniciar Sesión — Óptica Comunal</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" />
+    <style>
+        /* Estilos específicos para el login (sobreescriben variables globales) */
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: linear-gradient(160deg, #0f172a 0%, #1e3a8a 55%, #1e40af 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Fondo animado con círculos */
+        .login-bg-circle {
+            position: fixed;
+            border-radius: 50%;
+            pointer-events: none;
+            will-change: transform;
+        }
+
+            .login-bg-circle.c1 {
+                width: 600px;
+                height: 600px;
+                background: radial-gradient(circle, rgba(59,130,246,.2) 0%, transparent 70%);
+                top: -150px;
+                right: -100px;
+            }
+
+            .login-bg-circle.c2 {
+                width: 400px;
+                height: 400px;
+                background: radial-gradient(circle, rgba(6,182,212,.15) 0%, transparent 70%);
+                bottom: -80px;
+                left: -80px;
+            }
+
+            .login-bg-circle.c3 {
+                width: 300px;
+                height: 300px;
+                background: radial-gradient(circle, rgba(59,130,246,.1) 0%, transparent 70%);
+                top: 40%;
+                left: -100px;
+            }
+
+        /* Contenedor principal con animación de entrada */
+        .login-box {
+            width: 100%;
+            max-width: 420px;
+            padding: 20px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .login-card {
+            background: rgba(255,255,255,.06);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,.13);
+            border-radius: 24px;
+            padding: 44px 40px 36px;
+            box-shadow: 0 24px 64px rgba(0,0,0,.35);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            transform-style: preserve-3d;
+            perspective: 1000px;
+        }
+
+            .login-card:hover {
+                transform: translateY(-2px) rotateX(1deg) rotateY(1deg);
+                box-shadow: 0 28px 72px rgba(0,0,0,.4);
+            }
+
+        .login-logo {
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, #3b82f6, #06b6d4);
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            color: #fff;
+            margin: 0 auto 20px;
+            box-shadow: 0 8px 24px rgba(59,130,246,.4);
+        }
+
+        .login-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #fff;
+            text-align: center;
+            margin-bottom: 4px;
+            letter-spacing: -.4px;
+        }
+
+        .login-sub {
+            font-size: 13px;
+            color: rgba(255,255,255,.5);
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .login-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: rgba(255,255,255,.7);
+            margin-bottom: 6px;
+            display: block;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .login-input {
+            width: 100%;
+            background: rgba(255,255,255,.08);
+            border: 1px solid rgba(255,255,255,.15);
+            border-radius: 12px;
+            color: #fff;
+            padding: 12px 14px;
+            font-size: 14px;
+            transition: all 0.2s ease;
+            outline: none;
+        }
+
+            .login-input::placeholder {
+                color: rgba(255,255,255,.3);
+            }
+
+            .login-input:focus {
+                border-color: rgba(59,130,246,.8);
+                background: rgba(255,255,255,.12);
+                box-shadow: 0 0 0 3px rgba(59,130,246,.2);
+            }
+
+        .login-check {
+            accent-color: #3b82f6;
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+
+        .login-check-label {
+            font-size: 13px;
+            color: rgba(255,255,255,.6);
+            user-select: none;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+            .login-check-label:hover {
+                color: rgba(255,255,255,.9);
+            }
+
+        .login-forgot {
+            font-size: 12px;
+            color: rgba(255,255,255,.5);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+            .login-forgot:hover {
+                color: rgba(255,255,255,.9);
+                text-decoration: underline;
+            }
+
+        .login-options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .login-remember {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            margin: 0;
+        }
+
+        .login-links-col {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 6px;
+        }
+
+        .login-links-col .login-forgot {
+            display: block;
+            text-align: right;
+            line-height: 1.4;
+        }
+
+        .login-link-paciente {
+            font-size: 12px;
+            opacity: 0.85;
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 13px;
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            border: none;
+            border-radius: 12px;
+            color: #fff;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            box-shadow: 0 4px 16px rgba(59,130,246,.4);
+            letter-spacing: 0.3px;
+            position: relative;
+            overflow: hidden;
+        }
+
+            .login-btn:hover {
+                background: linear-gradient(135deg, #2563eb, #1d4ed8);
+                box-shadow: 0 6px 20px rgba(59,130,246,.6);
+                transform: translateY(-1px);
+            }
+
+            .login-btn:active {
+                transform: translateY(0);
+            }
+
+        .login-divider {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 24px 0 20px;
+        }
+
+            .login-divider::before,
+            .login-divider::after {
+                content: '';
+                flex: 1;
+                height: 1px;
+                background: rgba(255,255,255,.1);
+            }
+
+            .login-divider span {
+                font-size: 12px;
+                color: rgba(255,255,255,.3);
+                white-space: nowrap;
+            }
+
+        .login-register-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            padding: 12px;
+            background: rgba(255,255,255,.06);
+            border: 1px solid rgba(255,255,255,.13);
+            border-radius: 12px;
+            color: rgba(255,255,255,.7);
+            font-size: 13.5px;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.25s ease;
+        }
+
+            .login-register-btn:hover {
+                background: rgba(255,255,255,.12);
+                border-color: rgba(255,255,255,.25);
+                color: #fff;
+                transform: translateY(-1px);
+            }
+
+        .validation-error {
+            background: rgba(239,68,68,.15);
+            border: 1px solid rgba(239,68,68,.3);
+            border-radius: 12px;
+            padding: 10px 14px;
+            font-size: 13px;
+            color: #fca5a5;
+            margin-bottom: 20px;
+            animation: shake 0.4s ease;
+        }
+
+        @@keyframes shake {
+            0%, 100% {
+                transform: translateX(0);
+            }
+
+            25% {
+                transform: translateX(-5px);
+            }
+
+            75% {
+                transform: translateX(5px);
+            }
+        }
+
+        .toggle-pw {
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: rgba(255,255,255,.5);
+            cursor: pointer;
+            font-size: 18px;
+            padding: 4px;
+            transition: color 0.2s;
+        }
+
+            .toggle-pw:hover {
+                color: rgba(255,255,255,.9);
+            }
+
+        .login-animate-item {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        .btn-spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 0.6s linear infinite;
+            margin-right: 8px;
+        }
+
+        @@keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Canvas 3D */
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="canvas-container"></div>
+
+    <div class="login-bg-circle c1"></div>
+    <div class="login-bg-circle c2"></div>
+    <div class="login-bg-circle c3"></div>
+
+    <div class="login-box">
+        <div class="login-card">
+            <div class="login-logo login-animate-item" data-delay="0">
+                <i class="bi bi-eye-fill"></i>
+            </div>
+            <div class="login-title login-animate-item" data-delay="100">Óptica Comunal</div>
+            <div class="login-sub login-animate-item" data-delay="150">Iniciá sesión para continuar</div>
+
+            <form asp-action="Login" method="post" id="loginForm">
+                @Html.AntiForgeryToken()
+
+                @if (ViewData.ModelState.ErrorCount > 0)
+                {
+                    <div class="validation-error login-animate-item" data-delay="200">
+                        <i class="bi bi-exclamation-circle me-2"></i>
+                        <span asp-validation-summary="ModelOnly"></span>
+                    </div>
+                }
+
+                <div class="login-animate-item" data-delay="250" style="margin-bottom:18px;">
+                    <label class="login-label">Correo electrónico</label>
+                    <input asp-for="Email" type="email" class="login-input"
+                           placeholder="correo@ejemplo.com" autocomplete="email" />
+                    <span asp-validation-for="Email"
+                          style="font-size:12px;color:#fca5a5;margin-top:4px;display:block;"></span>
+                </div>
+
+                <div class="login-animate-item" data-delay="300" style="margin-bottom:8px; position:relative;">
+                    <label class="login-label">Contraseña</label>
+                    <div style="position:relative;">
+                        <input asp-for="Password" type="password" id="inputPassword"
+                               class="login-input" placeholder="••••••••"
+                               autocomplete="current-password" style="padding-right:42px;" />
+                        <button type="button" class="toggle-pw" id="togglePwBtn" tabindex="-1" title="Mostrar/ocultar contraseña">
+                            <i class="bi bi-eye" id="pwIcon"></i>
+                        </button>
+                    </div>
+                    <span asp-validation-for="Password"
+                          style="font-size:12px;color:#fca5a5;margin-top:4px;display:block;"></span>
+                </div>
+
+                <div class="login-options login-animate-item" data-delay="350">
+                    <label class="login-remember">
+                        <input asp-for="RememberMe" type="checkbox" class="login-check" />
+                        <span class="login-check-label">Recordarme</span>
+                    </label>
+                    <div class="login-links-col">
+                        <a asp-controller="Account" asp-action="RecuperarContrasena"
+                           class="login-forgot">¿Olvidaste tu contraseña?</a>
+                        <a asp-controller="PacienteAccount" asp-action="RecuperarContrasena"
+                           class="login-forgot login-link-paciente">Recuperación paciente</a>
+                    </div>
+                </div>
+
+                <button type="submit" class="login-btn login-animate-item" id="loginBtn" data-delay="400">
+                    <i class="bi bi-box-arrow-in-right me-2"></i>Entrar
+                </button>
+
+                <div class="login-divider login-animate-item" data-delay="450"><span>¿Primera vez?</span></div>
+
+                <a asp-controller="Pacientes" asp-action="Registro" class="login-register-btn login-animate-item" data-delay="500">
+                    <i class="bi bi-person-plus"></i>
+                    Registrarse como Paciente
+                </a>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.2/anime.min.js"></script>
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.128.0/build/three.module.js"
+            }
+        }
+    </script>
+    <script type="module">
+        import * as THREE from 'three';
+
+        function initParticleBackground() {
+            const container = document.getElementById('canvas-container');
+            if (!container) return;
+
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            const renderer = new THREE.WebGLRenderer({ alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setClearColor(0x000000, 0);
+            container.appendChild(renderer.domElement);
+
+            const particlesGeometry = new THREE.BufferGeometry();
+            const particlesCount = 1500;
+            const posArray = new Float32Array(particlesCount * 3);
+            for (let i = 0; i < particlesCount * 3; i += 3) {
+                posArray[i] = (Math.random() - 0.5) * 30;
+                posArray[i+1] = (Math.random() - 0.5) * 20;
+                posArray[i+2] = (Math.random() - 0.5) * 20 - 10;
+            }
+            particlesGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+
+            const particlesMaterial = new THREE.PointsMaterial({
+                size: 0.08,
+                color: 0x3b82f6,
+                transparent: true,
+                opacity: 0.6,
+                blending: THREE.AdditiveBlending
+            });
+            const particlesMesh = new THREE.Points(particlesGeometry, particlesMaterial);
+            scene.add(particlesMesh);
+
+            camera.position.z = 15;
+
+            let mouseX = 0, mouseY = 0;
+            document.addEventListener('mousemove', (event) => {
+                mouseX = (event.clientX / window.innerWidth) * 2 - 1;
+                mouseY = (event.clientY / window.innerHeight) * 2 - 1;
+            });
+
+            function animate() {
+                requestAnimationFrame(animate);
+                particlesMesh.rotation.y += 0.0005;
+                particlesMesh.rotation.x += 0.0003;
+                particlesMesh.rotation.x += (mouseY * 0.5 - particlesMesh.rotation.x) * 0.05;
+                particlesMesh.rotation.y += (mouseX * 0.5 - particlesMesh.rotation.y) * 0.05;
+                renderer.render(scene, camera);
+            }
+            animate();
+
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
+        }
+
+        initParticleBackground();
+    </script>
+    <script>
+        // Animaciones con anime.js
+        document.addEventListener('DOMContentLoaded', function() {
+            const animatedItems = document.querySelectorAll('.login-animate-item');
+            if (animatedItems.length && typeof anime !== 'undefined') {
+                anime({
+                    targets: animatedItems,
+                    opacity: [0, 1],
+                    translateY: [20, 0],
+                    delay: function(el) { return parseInt(el.getAttribute('data-delay') || 0); },
+                    duration: 600,
+                    easing: 'easeOutCubic'
+                });
+            }
+
+            // Parallax de círculos
+            const circles = document.querySelectorAll('.login-bg-circle');
+            if (circles.length) {
+                document.addEventListener('mousemove', function(e) {
+                    const mouseX = e.clientX / window.innerWidth;
+                    const mouseY = e.clientY / window.innerHeight;
+                    circles.forEach((circle, index) => {
+                        const speed = 20 + index * 10;
+                        const x = (mouseX - 0.5) * speed;
+                        const y = (mouseY - 0.5) * speed;
+                        circle.style.transform = `translate(${x}px, ${y}px)`;
+                    });
+                });
+            }
+
+            // Loader en botón
+            const loginForm = document.getElementById('loginForm');
+            const loginBtn = document.getElementById('loginBtn');
+            if (loginForm && loginBtn) {
+                loginForm.addEventListener('submit', function() {
+                    if (!loginBtn.disabled) {
+                        loginBtn.disabled = true;
+                        const originalHtml = loginBtn.innerHTML;
+                        loginBtn.innerHTML = '<span class="btn-spinner"></span> Validando...';
+                        setTimeout(() => {
+                            if (loginBtn.disabled) {
+                                loginBtn.innerHTML = originalHtml;
+                                loginBtn.disabled = false;
+                            }
+                        }, 5000);
+                    }
+                });
+            }
+
+            // Toggle contraseña
+            const togglePwBtn = document.getElementById('togglePwBtn');
+            const pwInput = document.getElementById('inputPassword');
+            const pwIcon = document.getElementById('pwIcon');
+            if (togglePwBtn && pwInput && pwIcon) {
+                togglePwBtn.addEventListener('click', function() {
+                    const isPassword = pwInput.type === 'password';
+                    pwInput.type = isPassword ? 'text' : 'password';
+                    pwIcon.className = isPassword ? 'bi bi-eye-slash' : 'bi bi-eye';
+                    anime({ targets: pwIcon, scale: [0.8, 1], duration: 200, easing: 'easeOutQuad' });
+                });
+            }
+
+            // Ripple en botón
+            if (loginBtn) {
+                loginBtn.addEventListener('click', function(e) {
+                    const ripple = document.createElement('span');
+                    const rect = loginBtn.getBoundingClientRect();
+                    const size = Math.max(rect.width, rect.height);
+                    ripple.style.cssText = `
+                        position: absolute;
+                        width: ${size}px;
+                        height: ${size}px;
+                        left: ${e.clientX - rect.left - size/2}px;
+                        top: ${e.clientY - rect.top - size/2}px;
+                        background: rgba(255,255,255,.3);
+                        border-radius: 50%;
+                        transform: scale(0);
+                        animation: ripple-anim 0.5s ease-out;
+                        pointer-events: none;
+                    `;
+                    if (getComputedStyle(loginBtn).position === 'static') loginBtn.style.position = 'relative';
+                    loginBtn.style.overflow = 'hidden';
+                    loginBtn.appendChild(ripple);
+                    setTimeout(() => ripple.remove(), 500);
+                });
+            }
+
+            if (!document.querySelector('#ripple-style-login')) {
+                const style = document.createElement('style');
+                style.id = 'ripple-style-login';
+                style.textContent = `@@keyframes ripple-anim { to { transform: scale(2.5); opacity: 0; } }`;
+                document.head.appendChild(style);
+            }
+
+            // Focus animado
+            document.querySelectorAll('.login-input').forEach(input => {
+                input.addEventListener('focus', () => anime({ targets: input, scale: 1.01, duration: 200, easing: 'easeOutQuad' }));
+                input.addEventListener('blur', () => anime({ targets: input, scale: 1, duration: 200, easing: 'easeOutQuad' }));
+            });
+        });
+    </script>
+</body>
+</html>

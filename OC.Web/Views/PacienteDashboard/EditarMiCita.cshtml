@@ -1,0 +1,98 @@
+@{
+    ViewData["Title"] = "Cambiar fecha/hora de mi cita";
+    var cita = ViewBag.Cita as OC.Core.Domain.Entities.Cita;
+    var sucursalesList = ViewBag.SucursalesList as IEnumerable<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem> ?? new List<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem>();
+    if (cita == null) { return; }
+    var slotActual = cita.FechaHora.ToString("HH:mm");
+    var fechaActual = cita.FechaHora.ToString("yyyy-MM-dd");
+}
+
+<div class="card-dashboard">
+    <h4>Cambiar mi cita</h4>
+    <p class="text-muted small">Al elegir otro horario, el que tenía queda liberado para que otro paciente pueda reservarlo.</p>
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show">@TempData["Error"] <button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+    }
+
+    <div class="alert alert-info mb-3">
+        Cita actual: <strong>@cita.FechaHora.ToString("dd/MM/yyyy HH:mm")</strong> — @(cita.Sucursal?.Nombre ?? "Sede")
+    </div>
+
+    <form asp-action="EditarMiCita" method="post" asp-route-id="@cita.Id">
+        <input type="hidden" name="id" value="@cita.Id" />
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label for="sucursalId">Nueva sede</label>
+                <select name="sucursalId" id="sucursalId" class="form-select" required>
+                    @foreach (var s in sucursalesList)
+                    {
+                        <option value="@s.Value" selected="@(s.Value == cita.SucursalId.ToString())">@s.Text</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label for="fecha">Nueva fecha</label>
+                <input type="date" name="fecha" id="fecha" class="form-control" value="@fechaActual" required />
+            </div>
+        </div>
+        <div class="mb-3">
+            <label class="d-block mb-2">Horario</label>
+            <p class="text-muted small mb-2">Elija el nuevo horario:</p>
+            <select name="hora" id="hora" class="form-select" required>
+                <option value="">Primero elija sede y fecha</option>
+            </select>
+        </div>
+        <button type="submit" class="btn btn-brand"><i class="bi bi-calendar-event"></i> Guardar cambio</button>
+        <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+    </form>
+</div>
+
+@section Scripts {
+    <script>
+        (function () {
+            var sucursalId = $('#sucursalId');
+            var fecha = $('#fecha');
+            var hora = $('#hora');
+            var slotActual = '@slotActual';
+
+            function cargarHoras() {
+                var sid = sucursalId.val();
+                var f = fecha.val();
+                hora.empty().append('<option value="">Cargando...</option>');
+                if (!sid || !f) {
+                    hora.empty().append('<option value="">Seleccione sede y fecha</option>');
+                    return;
+                }
+                $.get('@Url.Action("ObtenerHorasDisponibles", "PacienteDashboard")', { sucursalId: sid, fecha: f })
+                    .done(function (horas) {
+                        hora.empty().append('<option value="">Seleccione horario</option>');
+                        if (horas && horas.length) {
+                            horas.forEach(function (h) {
+                                var sel = (h === slotActual && f === $('#fecha').val()) ? ' selected' : '';
+                                hora.append('<option value="' + h + '"' + sel + '>' + h + '</option>');
+                            });
+                        } else {
+                            hora.append('<option value="">Sin disponibilidad</option>');
+                        }
+                    })
+                    .fail(function () {
+                        hora.empty().append('<option value="">Error al cargar</option>');
+                    });
+            }
+
+            sucursalId.on('change', cargarHoras);
+            fecha.on('change', cargarHoras);
+
+            if (sucursalId.val() && fecha.val()) cargarHoras();
+
+            $('form').on('submit', function () {
+                if (!hora.val() || hora.val().indexOf('Seleccione') >= 0 || hora.val().indexOf('Sin ') >= 0 || hora.val().indexOf('Error') >= 0) {
+                    alert('Seleccione un horario disponible.');
+                    return false;
+                }
+            });
+        })();
+    </script>
+}

@@ -1,0 +1,991 @@
+:root {
+    --primary: #0d6efd;
+    --primary-dark: #0056b3;
+    --secondary: #6c757d;
+    --dark: #212529;
+    --light: #f8f9fa;
+}
+
+body {
+    font-family: 'Montserrat', sans-serif;
+    padding-top: 76px;
+    background-color: #fff;
+}
+
+.navbar {
+    background-color: white;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.navbar-brand img {
+    height: 45px;
+}
+
+.btn-primary {
+    background-color: var(--primary);
+    border-color: var(--primary);
+    transition: all 0.2s;
+}
+
+    .btn-primary:hover {
+        background-color: var(--primary-dark);
+        border-color: var(--primary-dark);
+        transform: translateY(-2px);
+    }
+
+/* Hero Carrusel */
+#heroCarousel {
+    margin-top: -76px;
+}
+
+.carousel-item {
+    height: 70vh;
+    min-height: 400px;
+}
+
+.carousel-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+}
+
+.carousel-caption {
+    background: rgba(0,0,0,0.5);
+    border-radius: 1rem;
+    padding: 1.5rem;
+    bottom: 20%;
+}
+
+@media (max-width: 768px) {
+    .carousel-caption {
+        bottom: 10%;
+        padding: 1rem;
+    }
+
+        .carousel-caption h1 {
+            font-size: 1.5rem;
+        }
+}
+
+/* Tarjetas de productos */
+.product-card {
+    transition: transform 0.3s, box-shadow 0.3s;
+    border: none;
+    border-radius: 1rem;
+    overflow: hidden;
+}
+
+    .product-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+    }
+
+    .product-card img {
+        height: 200px;
+        object-fit: cover;
+        transition: transform 0.5s;
+    }
+
+    .product-card:hover img {
+        transform: scale(1.05);
+    }
+
+    .product-card .card-title {
+        font-weight: 600;
+    }
+
+    .product-card .price {
+        color: var(--primary);
+        font-weight: 700;
+        font-size: 1.2rem;
+    }
+
+/* Footer */
+.footer a {
+    text-decoration: none;
+    transition: opacity 0.2s;
+}
+
+    .footer a:hover {
+        text-decoration: underline;
+        opacity: 0.8;
+    }
+
+/* Paginación */
+.pagination .page-link {
+    color: var(--primary);
+}
+
+.pagination .active .page-link {
+    background-color: var(--primary);
+    border-color: var(--primary);
+    color: white;
+}
+
+/* Tablas responsivas */
+.table-responsive {
+    overflow-x: auto;
+    border-radius: 0.5rem;
+}
+
+/* Cards de sucursales */
+.card {
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+    .card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+
+/* Botón flotante de WhatsApp */
+.btn-whatsapp {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background-color: #25D366;
+    color: white;
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 30px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    transition: transform 0.3s;
+    z-index: 1000;
+}
+
+    .btn-whatsapp:hover {
+        transform: scale(1.1);
+        color: white;
+        background-color: #128C7E;
+    }
+
+.product-card, .card {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.6s, transform 0.6s;
+}
+
+    .product-card.fade-in, .card.fade-in {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+.landing-contact-card {
+    border-left: 4px solid var(--primary);
+}
+
+.landing-factura-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+    .landing-factura-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 28px rgba(15, 23, 42, 0.12) !important;
+    }
+
+
+
+
+/* =========================================
+   VARIABLES PREMIUM (Deep Ocean & Ice)
+========================================= */
+:root {
+    --brand-dark: #060b14; /* Fondo principal oscuro */
+    --brand-surface: #0f172a; /* Color de tarjetas */
+    --brand-primary: #0ea5e9; /* Azul brillante/Cian para acentos */
+    --brand-accent: #38bdf8; /* Hover del acento */
+    --text-main: #f8fafc; /* Texto blanco invierno */
+    --text-muted: #94a3b8; /* Texto secundario */
+    --glass-bg: rgba(15, 23, 42, 0.65);
+    --glass-border: rgba(255, 255, 255, 0.08);
+}
+
+body {
+    background-color: var(--brand-dark);
+    color: var(--text-main);
+    font-family: 'Montserrat', sans-serif;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* =========================================
+   NAVBAR (Glassmorphism)
+========================================= */
+.navbar.glass-nav {
+    background: rgba(6, 11, 20, 0.8) !important;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--glass-border);
+    transition: all 0.3s ease;
+}
+
+.navbar-dark .nav-link {
+    color: var(--text-main);
+    font-weight: 500;
+    transition: color 0.3s ease;
+    position: relative;
+}
+
+    .navbar-dark .nav-link:hover {
+        color: var(--brand-primary);
+    }
+
+/* =========================================
+   BOTONES PREMIUM
+========================================= */
+.btn-premium {
+    background: linear-gradient(135deg, var(--brand-primary), #0284c7);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: 0 4px 15px rgba(14, 165, 233, 0.25);
+}
+
+    .btn-premium:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(14, 165, 233, 0.4);
+        color: white;
+    }
+
+.btn-outline-premium {
+    background: transparent;
+    color: var(--brand-accent);
+    border: 1px solid var(--brand-accent);
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+    .btn-outline-premium:hover {
+        background: rgba(56, 189, 248, 0.1);
+        color: var(--brand-accent);
+        transform: translateY(-2px);
+    }
+
+/* ── HERO SLIDE  ── */
+.hero-slide {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transition: opacity 0.9s cubic-bezier(0.4, 0, 0.2, 1);
+    pointer-events: none;
+}
+
+    .hero-slide.active {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+/* Background image — subtle Ken Burns on active */
+.hero-slide__bg {
+    position: absolute;
+    inset: 0;
+    background-size: cover;
+    background-position: center;
+    transform: scale(1.04);
+    transition: transform 8s ease;
+}
+
+.hero-slide.active .hero-slide__bg {
+    transform: scale(1);
+}
+
+/* Deep cinematic overlay */
+.hero-slide__overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to right, rgba(7, 9, 15, 0.92) 0%, rgba(7, 9, 15, 0.65) 42%, rgba(7, 9, 15, 0.15) 100%), linear-gradient(to top, rgba(7,9,15,0.6) 0%, transparent 50%);
+}
+
+/* Content layout */
+.hero-slide__content {
+    position: relative;
+    z-index: 2;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    padding: 0 clamp(1.5rem, 6vw, 6rem);
+}
+
+/* Text panel — fades up on slide activation */
+.hero-slide__inner {
+    max-width: 540px;
+    opacity: 0;
+    transform: translateY(22px);
+    transition: opacity 0.7s ease 0.5s, transform 0.7s ease 0.5s;
+}
+
+.hero-slide.active .hero-slide__inner {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Eyebrow label */
+.hero-eyebrow {
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--brand-accent);
+    margin-bottom: 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+    .hero-eyebrow::before {
+        content: '';
+        display: block;
+        width: 28px;
+        height: 1px;
+        background: var(--brand-accent);
+    }
+
+/* Hero title */
+.hero-title {
+    font-size: clamp(2.2rem, 4.5vw, 4rem);
+    font-weight: 800;
+    line-height: 1.08;
+    letter-spacing: -0.02em;
+    color: #fff;
+    margin-bottom: 1.1rem;
+    text-wrap: balance;
+}
+
+/* Hero description */
+.hero-desc {
+    font-size: 0.95rem;
+    font-weight: 300;
+    line-height: 1.7;
+    color: rgba(255,255,255,0.55);
+    margin-bottom: 2rem;
+    max-width: 380px;
+}
+
+/* Price block */
+.hero-price {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: -0.01em;
+    margin-bottom: 2rem;
+}
+
+    .hero-price small {
+        font-size: 0.78rem;
+        font-weight: 400;
+        color: rgba(255,255,255,0.5);
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        display: block;
+        margin-bottom: 0.2rem;
+    }
+
+/* CTA button */
+.hero-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.7rem;
+    background: #fff;
+    color: var(--brand-dark);
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    text-decoration: none;
+    padding: 0.85rem 2rem;
+    transition: background 0.2s, color 0.2s, gap 0.2s;
+}
+
+    .hero-cta:hover {
+        background: var(--brand-accent);
+        color: #fff;
+        gap: 1rem;
+    }
+
+/* Floating product image */
+.hero-slide__img {
+    position: absolute;
+    right: clamp(2rem, 8vw, 10rem);
+    bottom: 0;
+    height: 88%;
+    max-width: 45vw;
+    object-fit: contain;
+    z-index: 2;
+    filter: drop-shadow(0 30px 60px rgba(0,0,0,0.6));
+    opacity: 0;
+    transform: translateX(30px) scale(0.97);
+    transition: opacity 0.8s ease 0.3s, transform 0.8s ease 0.3s;
+}
+
+.hero-slide.active .hero-slide__img {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+}
+
+/* Slide counter */
+.hero-counter {
+    position: absolute;
+    top: 50%;
+    right: clamp(1.5rem, 3vw, 3rem);
+    transform: translateY(-50%);
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.hero-counter__current {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #fff;
+    line-height: 1;
+}
+
+.hero-counter__sep {
+    width: 1px;
+    height: 28px;
+    background: rgba(255,255,255,0.25);
+}
+
+.hero-counter__total {
+    font-size: 0.78rem;
+    font-weight: 400;
+    color: rgba(255,255,255,0.45);
+}
+
+/* Thin progress bar */
+.hero-progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: rgba(255,255,255,0.1);
+    z-index: 10;
+    display: flex;
+    gap: 2px;
+}
+
+.hero-progress__track {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+    background: rgba(255,255,255,0.12);
+}
+
+.hero-progress__fill {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 0%;
+    background: var(--brand-accent);
+}
+
+/* Prev / Next arrows */
+.hero-arrow {
+    position: absolute;
+    bottom: 2.5rem;
+    z-index: 10;
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.15);
+    color: #fff;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 1.1rem;
+    transition: background 0.2s, border-color 0.2s;
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+}
+
+    .hero-arrow:hover {
+        background: rgba(255,255,255,0.16);
+        border-color: rgba(255,255,255,0.35);
+    }
+
+.hero-arrow--prev {
+    left: clamp(1.5rem, 6vw, 6rem);
+}
+
+.hero-arrow--next {
+    left: calc(clamp(1.5rem, 6vw, 6rem) + 54px);
+}
+
+/* ── FALLBACK HERO ── */
+.hero-fallback {
+    position: relative;
+    height: 80vh;
+    min-height: 520px;
+    overflow: hidden;
+    background: var(--brand-dark);
+    display: flex;
+    align-items: center;
+}
+
+.hero-fallback__bg {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 70% 60% at 70% 50%, rgba(14,165,233,0.12) 0%, transparent 70%), radial-gradient(ellipse 40% 40% at 20% 80%, rgba(14,165,233,0.06) 0%, transparent 60%);
+}
+
+.hero-fallback__grid {
+    position: absolute;
+    inset: 0;
+    background-image: linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+    background-size: 60px 60px;
+}
+
+.hero-fallback__content {
+    position: relative;
+    z-index: 2;
+    padding: 0 clamp(1.5rem, 6vw, 6rem);
+    max-width: 600px;
+}
+
+.hero-fallback__eyebrow {
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--brand-accent);
+    margin-bottom: 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+    .hero-fallback__eyebrow::before {
+        content: '';
+        display: block;
+        width: 28px;
+        height: 1px;
+        background: var(--brand-accent);
+    }
+
+.hero-fallback__title {
+    font-size: clamp(2.4rem, 5vw, 4.2rem);
+    font-weight: 800;
+    line-height: 1.06;
+    letter-spacing: -0.025em;
+    color: #fff;
+    margin-bottom: 1.3rem;
+    text-wrap: balance;
+}
+
+    .hero-fallback__title em {
+        font-style: normal;
+        color: var(--brand-accent);
+    }
+
+.hero-fallback__desc {
+    font-size: 0.97rem;
+    font-weight: 300;
+    line-height: 1.75;
+    color: rgba(255,255,255,0.55);
+    margin-bottom: 2.5rem;
+    max-width: 420px;
+}
+
+.hero-fallback__actions {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.hero-fallback__link {
+    font-size: 0.78rem;
+    color: rgba(255,255,255,0.5);
+    text-decoration: none;
+    letter-spacing: 0.07em;
+    font-weight: 500;
+    transition: color 0.2s;
+}
+
+    .hero-fallback__link:hover {
+        color: #fff;
+    }
+
+/* Mobile adjustments */
+@media (max-width: 768px) {
+    .hero-slide__img {
+        display: none;
+    }
+
+    .hero-counter {
+        display: none;
+    }
+
+    .hero-arrow--prev {
+        left: 1rem;
+    }
+
+    .hero-arrow--next {
+        left: calc(1rem + 54px);
+    }
+}
+
+/*Daniel*/
+
+/* =========================================
+   VARIABLES PREMIUM (Deep Ocean & Ice)
+========================================= */
+:root {
+    --brand-dark: #060b14;       /* Fondo principal oscuro */
+    --brand-surface: #0f172a;    /* Color de tarjetas */
+    --brand-primary: #0ea5e9;    /* Azul brillante/Cian para acentos */
+    --brand-accent: #38bdf8;     /* Hover del acento */
+    --text-main: #f8fafc;        /* Texto blanco invierno */
+    --text-muted: #94a3b8;       /* Texto secundario */
+    --glass-bg: rgba(15, 23, 42, 0.65);
+    --glass-border: rgba(255, 255, 255, 0.08);
+}
+
+body {
+    background-color: var(--brand-dark);
+    color: var(--text-main);
+    font-family: 'Montserrat', sans-serif;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* =========================================
+   NAVBAR (Glassmorphism)
+========================================= */
+.navbar.glass-nav {
+    background: rgba(6, 11, 20, 0.8) !important;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--glass-border);
+    transition: all 0.3s ease;
+}
+
+.navbar-dark .nav-link {
+    color: var(--text-main);
+    font-weight: 500;
+    transition: color 0.3s ease;
+    position: relative;
+}
+
+.navbar-dark .nav-link:hover { color: var(--brand-primary); }
+
+/* =========================================
+   BOTONES PREMIUM
+========================================= */
+.btn-premium {
+    background: linear-gradient(135deg, var(--brand-primary), #0284c7);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: 0 4px 15px rgba(14, 165, 233, 0.25);
+}
+
+.btn-premium:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(14, 165, 233, 0.4);
+    color: white;
+}
+
+.btn-outline-premium {
+    background: transparent;
+    color: var(--brand-accent);
+    border: 1px solid var(--brand-accent);
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-outline-premium:hover {
+    background: rgba(56, 189, 248, 0.1);
+    color: var(--brand-accent);
+    transform: translateY(-2px);
+}
+
+/* =========================================
+   HERO CAROUSEL & CARDS
+========================================= */
+.hero-glass-panel {
+    background: var(--glass-bg);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    padding: 3rem;
+    max-width: 600px;
+    text-align: left;
+    margin: 0 auto;
+    transform: translateY(20px);
+    animation: fadeUp 0.8s ease forwards;
+}
+
+.product-card {
+    background: var(--brand-surface);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.product-card:hover {
+    transform: translateY(-8px);
+    border-color: rgba(56, 189, 248, 0.3);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(14, 165, 233, 0.1);
+}
+
+.product-card .img-wrapper {
+    overflow: hidden;
+    aspect-ratio: 4/3;
+}
+
+.product-card img {
+    object-fit: cover;
+    width: 100%;
+    height: 100%;
+    transition: transform 0.5s ease;
+}
+
+.product-card:hover img {
+    transform: scale(1.08);
+}
+
+.price-tag {
+    font-size: 1.25rem;
+    color: var(--brand-accent);
+    letter-spacing: -0.5px;
+}
+
+/* =========================================
+   ANIMACIONES SUTILES (Scroll)
+========================================= */
+.animate-on-scroll {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+}
+.animate-on-scroll.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+footer { background-color: #04080f !important; border-top: 1px solid var(--glass-border); }
+
+
+/* =========================================
+   TARJETAS Y FORMULARIOS PREMIUM (Dark Mode)
+========================================= */
+.card-premium {
+    background: var(--brand-surface);
+    border: 1px solid var(--glass-border) !important;
+    color: var(--text-main);
+    border-radius: 16px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+    .card-premium:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+    }
+
+.input-premium {
+    background: rgba(6, 11, 20, 0.5);
+    border: 1px solid var(--glass-border);
+    color: var(--text-main);
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+}
+
+    .input-premium:focus {
+        background: rgba(6, 11, 20, 0.8);
+        border-color: var(--brand-primary);
+        box-shadow: 0 0 0 0.25rem rgba(14, 165, 233, 0.25);
+        color: var(--text-main);
+    }
+
+    .input-premium::placeholder {
+        color: rgba(255, 255, 255, 0.3);
+    }
+
+.input-premium[type="date"]::-webkit-calendar-picker-indicator,
+.input-premium[type="datetime-local"]::-webkit-calendar-picker-indicator {
+    filter: invert(1) brightness(1.35);
+    opacity: 0.95;
+    cursor: pointer;
+}
+
+/* =========================================
+   SIDEBAR FILTERS (Catálogo)
+========================================= */
+.list-group-premium .list-group-item {
+    background: transparent;
+    color: var(--text-main);
+    opacity: 0.8;
+    border: none;
+    border-bottom: 1px solid var(--glass-border);
+    padding: 1rem 1.5rem;
+    transition: all 0.3s ease;
+}
+
+    .list-group-premium .list-group-item:last-child {
+        border-bottom: none;
+    }
+
+    .list-group-premium .list-group-item:hover {
+        color: var(--brand-primary);
+        background: rgba(14, 165, 233, 0.05);
+        opacity: 1;
+        padding-left: 1.8rem; /* Efecto sutil de sangría al pasar el mouse */
+    }
+
+    .list-group-premium .list-group-item.active {
+        background: rgba(14, 165, 233, 0.1);
+        color: var(--brand-accent);
+        font-weight: 600;
+        opacity: 1;
+        border-left: 3px solid var(--brand-accent);
+    }
+
+/* =========================================
+   PAGINATION DARK MODE
+========================================= */
+.pagination-premium .pagination {
+    margin-bottom: 0;
+}
+
+.pagination-premium .page-link {
+    background-color: var(--brand-surface);
+    border-color: var(--glass-border);
+    color: var(--text-main);
+    transition: all 0.3s ease;
+}
+
+    .pagination-premium .page-link:hover {
+        background-color: rgba(14, 165, 233, 0.2);
+        color: var(--brand-accent);
+    }
+
+.pagination-premium .page-item.active .page-link {
+    background-color: var(--brand-primary);
+    border-color: var(--brand-primary);
+    color: white;
+}
+
+/* =========================================
+   PACIENTE: MIS FACTURAS / NOTIFICACIONES
+========================================= */
+.landing-subtitle {
+    color: #cbd5e1;
+}
+
+.landing-label {
+    color: var(--text-main);
+    font-weight: 600;
+}
+
+.landing-mis-facturas .card-premium .btn-outline-secondary {
+    border-color: #64748b;
+    color: #cbd5e1;
+}
+
+.landing-mis-facturas .card-premium .btn-outline-secondary:hover {
+    background-color: rgba(148, 163, 184, 0.15);
+    color: #e2e8f0;
+}
+
+.landing-notificaciones-list {
+    display: grid;
+    gap: 0.85rem;
+}
+
+.landing-notificacion-item {
+    background: var(--brand-surface);
+    border: 1px solid var(--glass-border);
+    color: var(--text-main);
+    border-radius: 12px;
+    padding: 1rem 1.1rem;
+}
+
+.landing-notificacion-item h5,
+.landing-notificacion-item p {
+    color: var(--text-main);
+}
+
+.landing-paciente .card-premium h1,
+.landing-paciente .card-premium h2,
+.landing-paciente .card-premium h3,
+.landing-paciente .card-premium h4,
+.landing-paciente .card-premium h5,
+.landing-paciente .card-premium h6,
+.landing-paciente .card-premium p,
+.landing-paciente .card-premium label,
+.landing-paciente .card-premium span,
+.landing-paciente .card-premium td,
+.landing-paciente .card-premium th {
+    color: var(--text-main);
+}
+
+.landing-table-dark {
+    color: var(--text-main);
+}
+
+.landing-table-dark tbody tr {
+    background-color: rgba(15, 23, 42, 0.9);
+}
+
+.landing-table-dark tbody td,
+.landing-table-dark tbody th {
+    color: var(--text-main) !important;
+    border-color: var(--glass-border) !important;
+}
+
+.landing-table-dark tbody tr:hover {
+    background-color: rgba(56, 189, 248, 0.08);
+}
+
+.landing-table-dark.table-striped > tbody > tr:nth-of-type(odd) > * {
+    color: var(--text-main);
+    background-color: rgba(255, 255, 255, 0.03);
+}
+
+.landing-table-dark.table-hover > tbody > tr:hover > * {
+    color: var(--text-main);
+}
+
+.landing-table-dark .table-light,
+.landing-table-dark tfoot,
+.landing-table-dark thead.table-light,
+.landing-table-dark .table-light th,
+.landing-table-dark .table-light td {
+    background-color: rgba(15, 23, 42, 0.9) !important;
+    color: var(--text-main) !important;
+    border-color: var(--glass-border) !important;
+}
+
+/* Bootstrap table vars specific override for Mis Citas */
+.landing-citas-table {
+    --bs-table-bg: rgba(15, 23, 42, 0.92);
+    --bs-table-striped-bg: rgba(15, 23, 42, 0.98);
+    --bs-table-striped-color: var(--text-main);
+    --bs-table-color: var(--text-main);
+    --bs-table-border-color: rgba(255, 255, 255, 0.08);
+    --bs-table-hover-bg: rgba(56, 189, 248, 0.12);
+    --bs-table-hover-color: var(--text-main);
+}

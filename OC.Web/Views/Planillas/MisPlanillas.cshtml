@@ -1,0 +1,59 @@
+﻿@model OC.Core.Common.PagedResult<OC.Core.Domain.Entities.Planilla>
+
+<div class="card-dashboard">
+    <h4>Mis Planillas</h4>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (!Model.Items.Any())
+    {
+        <p>No tienes planillas registradas.</p>
+    }
+    else
+    {
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Período</th>
+                    <th>Fecha Cálculo</th>
+                    <th>Salario Neto</th>
+                    <th>N° Comprobante</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var p in Model.Items)
+                {
+                    <tr>
+                        <td>@p.Mes @p.Año</td>
+                        <td>@p.FechaCalculo.ToString("dd/MM/yyyy")</td>
+                        <td>₡@p.SalarioNeto.ToString("N2")</td>
+                        <td>@p.NumeroComprobante</td>
+                        <td>
+                            <a asp-action="Comprobante" asp-route-id="@p.Id" class="btn btn-sm btn-info" target="_blank">
+                                <i class="bi bi-printer"></i> Ver Comprobante
+                            </a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        <nav>
+            <ul class="pagination">
+                @for (int i = 1; i <= Model.TotalPages; i++)
+                {
+                    <li class="page-item @(i == Model.PageIndex ? "active" : "")">
+                        <a class="page-link" asp-action="MisPlanillas" asp-route-page="@i">@i</a>
+                    </li>
+                }
+            </ul>
+        </nav>
+    }
+</div>

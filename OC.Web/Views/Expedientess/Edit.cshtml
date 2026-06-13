@@ -1,0 +1,57 @@
+﻿@model OC.Web.ViewModels.ExpedienteEditViewModel
+
+<div class="card-dashboard">
+    <h4>Editar Expediente Clínico</h4>
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="alert alert-info mb-3">
+        <strong>Paciente:</strong> @Model.NombrePaciente<br />
+        <strong>Fecha de la cita:</strong> @Model.FechaCita.ToString("dd/MM/yyyy HH:mm")
+    </div>
+
+    @if (Model.CitaAtendida)
+    {
+        <div class="alert alert-warning">
+            <i class="bi bi-info-circle"></i> La cita ya fue atendida. Puede modificar los datos del expediente.
+        </div>
+    }
+
+    <form asp-action="Edit" method="post">
+        <input type="hidden" asp-for="Id" />
+        <input type="hidden" asp-for="NombrePaciente" />
+        <input type="hidden" asp-for="FechaCita" />
+        <input type="hidden" asp-for="PacienteId" />
+
+        <div class="mb-3">
+            <label asp-for="MotivoConsulta" class="form-label"></label>
+            <textarea asp-for="MotivoConsulta" class="form-control" rows="3"></textarea>
+            <span asp-validation-for="MotivoConsulta" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Observaciones" class="form-label"></label>
+            <textarea asp-for="Observaciones" class="form-control" rows="3"></textarea>
+            <span asp-validation-for="Observaciones" class="text-danger"></span>
+        </div>
+
+        <button type="submit" class="btn btn-primary">
+            <i class="bi bi-save"></i> Guardar Cambios
+        </button>
+        <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Volver
+        </a>
+    </form>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

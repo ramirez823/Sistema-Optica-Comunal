@@ -1,0 +1,202 @@
+﻿@{
+    Layout = "_LayoutLanding";
+    ViewData["Title"] = "Inicio - Óptica Comunal";
+    var destacados = ViewBag.Destacados as IEnumerable<OC.Core.Domain.Entities.Producto>;
+    var productosCarrusel = ViewBag.ProductosCarrusel as IEnumerable<OC.Core.Domain.Entities.Producto>;
+}
+
+
+@if (productosCarrusel != null && productosCarrusel.Any())
+{
+    var slideList = productosCarrusel.ToList();
+    <div id="heroCarousel" style="position:relative; width:100%; height:80vh; min-height:520px; overflow:hidden; background:var(--brand-dark); margin-top:-5rem;">
+
+        @for (int i = 0; i < slideList.Count; i++)
+        {
+            var prod = slideList[i];
+            <div class="hero-slide @(i == 0 ? "active" : "")" data-index="@i">
+
+                <div class="hero-slide__bg"
+                     style="background-image:url('@(string.IsNullOrEmpty(prod.RutaImagen) ? "/images/default-product.jpg" : prod.RutaImagen)');">
+                </div>
+
+                <div class="hero-slide__overlay"></div>
+
+                <div class="hero-slide__content">
+                    <div class="hero-slide__inner">
+                        <p class="hero-eyebrow">Colección Actual</p>
+                        <h1 class="hero-title">@prod.Nombre</h1>
+                        <p class="hero-desc">@prod.DescripcionCorta</p>
+                        <div class="hero-price">
+                            <small>Precio público</small>
+                            ₡@prod.PrecioPublico.ToString("N2")
+                        </div>
+                        <a href="/landing/detalle-producto/@prod.Id" class="hero-cta">
+                            Conoce más <i class="bi bi-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <img src="@(string.IsNullOrEmpty(prod.RutaImagen) ? "/images/default-product.jpg" : prod.RutaImagen)"
+                     alt="@prod.Nombre"
+                     class="hero-slide__img" />
+            </div>
+        }
+
+        <div class="hero-counter">
+            <span class="hero-counter__current" id="counterCurrent">01</span>
+            <div class="hero-counter__sep"></div>
+            <span class="hero-counter__total" id="counterTotal">@slideList.Count.ToString("D2")</span>
+        </div>
+
+        <div class="hero-progress" id="heroProgress"></div>
+
+        <button class="hero-arrow hero-arrow--prev" id="heroPrev" aria-label="Anterior">
+            <i class="bi bi-arrow-left"></i>
+        </button>
+        <button class="hero-arrow hero-arrow--next" id="heroNext" aria-label="Siguiente">
+            <i class="bi bi-arrow-right"></i>
+        </button>
+    </div>
+}
+else
+{
+    <section class="hero-fallback" style="margin-top:-5rem;">
+        <div class="hero-fallback__bg"></div>
+        <div class="hero-fallback__grid"></div>
+        <div class="hero-fallback__content">
+            <p class="hero-fallback__eyebrow">Tecnología &amp; Cuidado Visual</p>
+            <h1 class="hero-fallback__title">
+                Precisión que<br>
+                <em>transforma</em><br>
+                tu visión.
+            </h1>
+            <p class="hero-fallback__desc">
+                Tecnología óptica de vanguardia y atención clínica especializada
+                para el cuidado de tus ojos.
+            </p>
+            <div class="hero-fallback__actions">
+                <a href="/landing/catalogo" class="hero-cta">
+                    Explorar Catálogo <i class="bi bi-arrow-right"></i>
+                </a>
+                <a href="/landing/agendar-cita" class="hero-fallback__link">Agendar Cita →</a>
+            </div>
+        </div>
+    </section>
+}
+
+@if (!User.Identity?.IsAuthenticated ?? true)
+{
+    <section class="container py-5" style="margin-top: 3rem;">
+        <div class="text-center animate-on-scroll">
+            <h2 style="font-size: clamp(1.3rem, 3vw, 1.8rem); font-weight: 700; color: var(--text-main); margin-bottom: 0.6rem;">
+                ¿Aún no tienes cuenta?
+            </h2>
+            <p style="font-size: 0.95rem; color: var(--text-muted); margin-bottom: 1.5rem;">
+                Regístrate como paciente para agendar citas y comprar productos con beneficios exclusivos.
+            </p>
+            <a href="/Pacientes/Registro" class="btn btn-premium">
+                <i class="bi bi-person-plus-fill me-2"></i>Registrarme como Paciente
+            </a>
+            <p style="margin-top: 1rem; font-size: 0.85rem; color: var(--text-muted);">
+                ¿Ya tienes cuenta? <a href="/Account/Login" style="color: var(--brand-accent); text-decoration: none;">Inicia sesión aquí</a>
+            </p>
+        </div>
+    </section>
+}
+
+<section class="container my-5 py-5">
+    <div class="d-flex justify-content-between align-items-end mb-5 animate-on-scroll">
+        <div>
+            <h6 class="text-uppercase tracking-wide" style="color: var(--brand-accent); letter-spacing: 2px;">Colección Exclusiva</h6>
+            <h2 class="display-6 fw-bold m-0 text-white">Productos Destacados</h2>
+        </div>
+        <a href="/landing/catalogo" class="btn btn-outline-premium d-none d-md-inline-block">Ver todos</a>
+    </div>
+
+    <div class="row g-4 g-lg-5">
+        @if (destacados != null && destacados.Any())
+        {
+            @foreach (var prod in destacados)
+            {
+                <div class="col-12 col-sm-6 col-lg-3 animate-on-scroll">
+                    <div class="card product-card h-100">
+                        <div class="img-wrapper relative">
+                            <img src="@(string.IsNullOrEmpty(prod.RutaImagen) ? "/images/default-product.jpg" : prod.RutaImagen)" alt="@prod.Nombre">
+                        </div>
+                        <div class="card-body d-flex flex-column p-4">
+                            <h5 class="card-title text-white fw-bold mb-2">@prod.Nombre</h5>
+
+                            <p class="card-text text-light opacity-75 small mb-4 flex-grow-1">@prod.DescripcionCorta</p>
+
+                            <div class="d-flex justify-content-between align-items-center mt-auto border-top pt-3" style="border-color: var(--glass-border) !important;">
+                                <span class="price-tag fw-bold">₡@prod.PrecioPublico.ToString("N2")</span>
+                                <a href="/landing/detalle-producto/@prod.Id" class="btn btn-sm btn-outline-light rounded-circle" style="width: 35px; height: 35px; display: flex; align-items: center; justify-content: center;" title="Ver detalles">
+                                    <i class="bi bi-arrow-right"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+</section>
+
+@section Scripts {
+    <script>
+        (function () {
+            var slides = document.querySelectorAll('.hero-slide');
+            if (!slides.length) return;
+
+            var progressBar   = document.getElementById('heroProgress');
+            var counterEl     = document.getElementById('counterCurrent');
+            var total         = slides.length;
+            var current       = 0;
+            var DURATION      = 5000;
+            var timer         = null;
+
+            for (var i = 0; i < total; i++) {
+                var track = document.createElement('div');
+                track.className = 'hero-progress__track';
+                var fill = document.createElement('div');
+                fill.className = 'hero-progress__fill';
+                fill.id = 'pf-' + i;
+                track.appendChild(fill);
+                progressBar.appendChild(track);
+            }
+
+            function goTo(index) {
+                var prevFill = document.getElementById('pf-' + current);
+                prevFill.style.transition = 'none';
+                prevFill.style.width = '0%';
+
+                slides[current].classList.remove('active');
+                current = ((index % total) + total) % total;
+                slides[current].classList.add('active');
+                counterEl.textContent = String(current + 1).padStart(2, '0');
+
+                requestAnimationFrame(function () {
+                    requestAnimationFrame(function () {
+                        var fill = document.getElementById('pf-' + current);
+                        fill.style.transition = 'width ' + DURATION + 'ms linear';
+                        fill.style.width = '100%';
+                    });
+                });
+
+                clearTimeout(timer);
+                timer = setTimeout(function () { goTo(current + 1); }, DURATION);
+            }
+
+            document.getElementById('heroPrev').addEventListener('click', function () { goTo(current - 1); });
+            document.getElementById('heroNext').addEventListener('click', function () { goTo(current + 1); });
+
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'ArrowLeft')  goTo(current - 1);
+                if (e.key === 'ArrowRight') goTo(current + 1);
+            });
+
+            goTo(0);
+        })();
+    </script>
+}

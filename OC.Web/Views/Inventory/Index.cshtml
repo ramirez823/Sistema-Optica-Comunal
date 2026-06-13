@@ -1,0 +1,431 @@
+@model OC.Core.Common.PagedResult<OC.Core.Domain.Entities.Producto>
+@{
+    ViewData["Title"] ="Inventario";
+    var seccion = ViewBag.Seccion as string ??"productos";
+    var paginationProductos = ViewBag.PaginationProductos as PaginationInfo;
+    var paginationTecnologias = ViewBag.PaginationTecnologias as PaginationInfo;
+    var paginationAros = ViewBag.PaginationAros as PaginationInfo;
+    var pagination = paginationProductos ?? new PaginationInfo
+    {
+        CurrentPage = Model.PageIndex,
+        TotalPages = Model.TotalPages,
+        GetPageUrl = (page) => Url.Action("Index", new { seccion, page, pageSize = ViewBag.PageSize })
+    };
+    var lowStock = ViewBag.LowStock as IEnumerable<OC.Core.Domain.Entities.Producto> ?? new List<OC.Core.Domain.Entities.Producto>();
+    var tecnologias = ViewBag.Tecnologias as IEnumerable<OC.Core.Domain.Entities.TecnologiaLente> ?? new List<OC.Core.Domain.Entities.TecnologiaLente>();
+    var aros = ViewBag.Aros as IEnumerable<OC.Core.Domain.Entities.Aro> ?? new List<OC.Core.Domain.Entities.Aro>();
+}
+
+<div class="container-fluid px-4">
+    <div class="page-header animate-fade-up">
+        <div class="page-header-text">
+            <div class="page-header-icon"><i class="bi bi-box-seam"></i></div>
+            <div>
+                <h1 class="page-title">Inventario</h1>
+                <p class="page-subtitle">
+                    <i class="bi bi-info-circle me-1"></i>
+                    Productos, tecnologías de lente y aros.
+                </p>
+            </div>
+        </div>
+        <div class="page-actions">
+            <div class="dropdown">
+                <button type="button" class="btn btn-brand dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="bi bi-plus-circle me-2"></i> Agregar
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <li><a class="dropdown-item" asp-controller="Inventory" asp-action="Create" asp-route-seccion="productos">
+                        <i class="bi bi-box-seam me-2"></i> Producto
+                    </a></li>
+                    <li><a class="dropdown-item" asp-controller="Tecnologias" asp-action="Create">
+                        <i class="bi bi-eyedropper me-2"></i> Tecnología de lente
+                    </a></li>
+                    <li><a class="dropdown-item" asp-controller="Aros" asp-action="Create">
+                        <i class="bi bi-eyeglasses me-2"></i> Aro
+                    </a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show animate-fade-up mb-3" role="alert">
+            @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @* ── Tabs (sin Bootstrap JS, funcionan como links normales) ── *@
+    <ul class="nav nav-tabs mb-0" id="inventarioTabs" role="tablist">
+        <li class="nav-item">
+            <a class="nav-link text-dark fw-semibold @(seccion =="productos" ?"active" :"")"
+               href="@Url.Action("Index", new { seccion ="productos", page = 1, pageSize = 12 })">
+                <i class="bi bi-box-seam me-1"></i> Productos
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link text-dark fw-semibold @(seccion =="tecnologias" ?"active" :"")"
+               href="@Url.Action("Index", new { seccion ="tecnologias", tecPage = 1, tecPageSize = 12 })">
+                <i class="bi bi-eyedropper me-1"></i> Tecnologías
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link text-dark fw-semibold @(seccion =="aros" ?"active" :"")"
+               href="@Url.Action("Index", new { seccion ="aros", aroPage = 1, aroPageSize = 12 })">
+                <i class="bi bi-eyeglasses me-1"></i> Aros
+            </a>
+        </li>
+    </ul>
+
+    <style>
+        #inventarioTabs .nav-link {
+            color: #6c757d;
+            border-radius: 0;
+        }
+        #inventarioTabs .nav-link.active {
+            color: #212529 !important;
+            border-bottom: 3px solid #212529;
+            background: transparent;
+        }
+        #inventarioTabs .nav-link:hover {
+            color: #343a40;
+        }
+        .rpt-filter-icon { background: linear-gradient(135deg, #3b82f6, #2563eb); border-color: #3b82f6; color: white; }
+        .rpt-filter-btn { background: linear-gradient(135deg, #3b82f6, #2563eb); border: none; color: white; }
+        .rpt-filter-btn:hover { background: linear-gradient(135deg, #2563eb, #1d4ed8); color: white; }
+        #inventarioTabs .nav-link i { color: inherit; }
+        #inventarioTabs .nav-link.active i { color: #212529; }
+    </style>
+
+    <div class="tab-content" id="inventarioTabContent">
+        @* ── PRODUCTOS ── *@
+        <div class="tab-pane fade @(seccion =="productos" ?"show active" :"")" id="panel-productos" role="tabpanel">
+            <div class="card-dashboard mt-0">
+                <div class="card-header bg-white py-2">
+                    <form method="get" asp-action="Index" class="d-flex gap-2 align-items-center flex-wrap">
+                        <input type="hidden" name="seccion" value="productos" />
+                        <input type="hidden" name="page" value="1" />
+                        <input type="hidden" name="pageSize" value="@(Model?.PageSize ?? 12)" />
+                        <input type="hidden" name="filtroTecnologia" value="@ViewBag.FiltroTecnologia" />
+                        <input type="hidden" name="filtroAro" value="@ViewBag.FiltroAro" />
+                        <div class="input-group input-group-sm" style="max-width:300px">
+                            <span class="input-group-text rpt-filter-icon"><i class="bi bi-search"></i></span>
+                            <input type="text" name="filtroProducto" class="form-control"
+                                   value="@ViewBag.FiltroProducto" placeholder="Buscar nombre, SKU..." />
+                        </div>
+                        <button type="submit" class="btn btn-sm rpt-filter-btn">
+                            <i class="bi bi-funnel"></i> Filtrar
+                        </button>
+                        @if (!string.IsNullOrEmpty(ViewBag.FiltroProducto))
+                        {
+                            <a asp-action="Index" asp-route-seccion="productos" asp-route-page="1" asp-route-pageSize="@(Model?.PageSize ?? 12)"
+                               asp-route-filtroTecnologia="@ViewBag.FiltroTecnologia" asp-route-filtroAro="@ViewBag.FiltroAro"
+                               class="btn btn-sm btn-link text-decoration-none text-muted">
+                                <i class="bi bi-x-circle"></i> Limpiar
+                            </a>
+                        }
+                    </form>
+                </div>
+                <div class="card-body p-0">
+                    @if (!Model.Items.Any())
+                    {
+                        <div class="text-center py-5">
+                            <i class="bi bi-box-seam text-muted" style="font-size:3rem"></i>
+                            <p class="text-muted mt-3">No hay productos registrados.</p>
+                            <a asp-controller="Inventory" asp-action="Create" class="btn btn-brand">
+                                <i class="bi bi-plus-circle me-2"></i>Agregar primer producto
+                            </a>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th style="width:72px">Imagen</th>
+                                        <th>Nombre</th>
+                                        <th>SKU</th>
+                                        <th>Costo unitario</th>
+                                        <th>Stock</th>
+                                        <th>Estado</th>
+                                        <th class="text-center">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var item in Model.Items)
+                                    {
+                                        var stockClass = item.Stock < 6 ?"text-danger fw-bold" :"";
+                                        <tr>
+                                            <td class="text-center">
+                                                @if (!string.IsNullOrEmpty(item.RutaImagen))
+                                                {
+                                                    <img src="@item.RutaImagen" alt="" class="rounded border" style="height:48px;width:48px;object-fit:contain" />
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted small">—</span>
+                                                }
+                                            </td>
+                                            <td>@item.Nombre</td>
+                                            <td>@item.SKU</td>
+                                            <td>₡@item.CostoUnitario.ToString("N2")</td>
+                                            <td class="@stockClass">@item.Stock</td>
+                                            <td>
+                                                @if (item.Activo)
+                                                {
+                                                    <span class="badge bg-success"><i class="bi bi-check-circle"></i> Activo</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-secondary"><i class="bi bi-x-circle"></i> Inactivo</span>
+                                                }
+                                            </td>
+                                            <td class="text-center">
+                                                <div class="btn-toolbar table-row-toolbar justify-content-center flex-wrap mb-0">
+                                                    <div class="btn-group btn-group-sm" role="group">
+                                                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-outline-info">
+                                                            <i class="bi bi-eye"></i><span class="d-none d-xl-inline ms-1">Ver</span>
+                                                        </a>
+                                                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-outline-secondary">
+                                                            <i class="bi bi-pencil"></i><span class="d-none d-xl-inline ms-1">Editar</span>
+                                                        </a>
+                                                    </div>
+                                                    <form asp-action="Delete" asp-route-id="@item.Id" method="post" class="ms-1"
+                                                          onsubmit="return confirm('¿Eliminar este producto del catálogo?');">
+                                                        @Html.AntiForgeryToken()
+                                                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                            <i class="bi bi-trash"></i><span class="d-none d-xl-inline ms-1">Eliminar</span>
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            @await Html.PartialAsync("_Pagination", pagination)
+
+            @if (lowStock.Any())
+            {
+                <div class="card-dashboard mt-4 border-danger">
+                    <div class="card-header bg-danger bg-opacity-10 border-bottom-0">
+                        <h5 class="mb-0 text-danger"><i class="bi bi-exclamation-triangle-fill me-2"></i> Bajo stock (≤5)</h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <table class="table table-danger mb-0">
+                            <thead>
+                                <tr><th style="width:56px"></th><th>Nombre</th><th>SKU</th><th>Stock</th></tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in lowStock)
+                                {
+                                    <tr>
+                                        <td class="text-center">
+                                            @if (!string.IsNullOrEmpty(item.RutaImagen))
+                                            {
+                                                <img src="@item.RutaImagen" alt="" class="rounded" style="height:40px;width:40px;object-fit:contain" />
+                                            }
+                                            else { <span class="text-muted">—</span> }
+                                        </td>
+                                        <td>@item.Nombre</td>
+                                        <td>@item.SKU</td>
+                                        <td class="fw-bold text-danger">@item.Stock</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            }
+        </div>
+
+        @* ── TECNOLOGIAS ── *@
+        <div class="tab-pane fade @(seccion =="tecnologias" ?"show active" :"")" id="panel-tecnologias" role="tabpanel">
+            <div class="card-dashboard mt-0">
+                <div class="card-header bg-white py-2">
+                    <form method="get" asp-action="Index" class="d-flex gap-2 align-items-center flex-wrap">
+                        <input type="hidden" name="seccion" value="tecnologias" />
+                        <input type="hidden" name="page" value="1" />
+                        <input type="hidden" name="pageSize" value="@(Model?.PageSize ?? 12)" />
+                        <input type="hidden" name="filtroProducto" value="@ViewBag.FiltroProducto" />
+                        <input type="hidden" name="filtroAro" value="@ViewBag.FiltroAro" />
+                        <div class="input-group input-group-sm" style="max-width:300px">
+                            <span class="input-group-text rpt-filter-icon"><i class="bi bi-search"></i></span>
+                            <input type="text" name="filtroTecnologia" class="form-control"
+                                   value="@ViewBag.FiltroTecnologia" placeholder="Buscar nombre, SKU..." />
+                        </div>
+                        <button type="submit" class="btn btn-sm rpt-filter-btn">
+                            <i class="bi bi-funnel"></i> Filtrar
+                        </button>
+                        @if (!string.IsNullOrEmpty(ViewBag.FiltroTecnologia))
+                        {
+                            <a asp-action="Index" asp-route-seccion="tecnologias" asp-route-page="1" asp-route-pageSize="@(Model?.PageSize ?? 12)"
+                               class="btn btn-sm btn-link text-decoration-none text-muted">
+                                <i class="bi bi-x-circle"></i> Limpiar
+                            </a>
+                        }
+                    </form>
+                </div>
+                <div class="card-body p-0">
+                    @if (!tecnologias.Any())
+                    {
+                        <div class="text-center py-5">
+                            <i class="bi bi-eyedropper text-muted" style="font-size:3rem"></i>
+                            <p class="text-muted mt-3">No hay tecnologías registradas.</p>
+                        </div>
+                    }
+                    else
+                    {
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr><th>Nombre</th><th>Precio</th><th class="text-center">Acciones</th></tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in tecnologias)
+                                {
+                                    <tr>
+                                        <td>@item.Nombre</td>
+                                        <td>₡@item.Precio.ToString("N2")</td>
+                                        <td class="text-center">
+                                            <div class="btn-toolbar table-row-toolbar justify-content-center flex-wrap mb-0">
+                                                <div class="btn-group btn-group-sm" role="group">
+                                                    <a asp-controller="Tecnologias" asp-action="Details" asp-route-id="@item.Id" class="btn btn-outline-info">
+                                                        <i class="bi bi-eye"></i><span class="d-none d-xl-inline ms-1">Ver</span>
+                                                    </a>
+                                                    <button type="button" class="btn btn-outline-secondary"
+                                                            onclick="editarTecnologia(@item.Id, '@item.Nombre', @item.Precio.ToString("F2"))">
+                                                        <i class="bi bi-pencil"></i><span class="d-none d-xl-inline ms-1">Editar</span>
+                                                    </button>
+                                                </div>
+                                                <form asp-controller="Tecnologias" asp-action="Delete" asp-route-id="@item.Id" method="post" class="ms-1"
+                                                      onsubmit="return confirm('¿Eliminar esta tecnología?');">
+                                                    @Html.AntiForgeryToken()
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                        <i class="bi bi-trash"></i><span class="d-none d-xl-inline ms-1">Eliminar</span>
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                </div>
+            </div>
+            @if (paginationTecnologias != null && paginationTecnologias.TotalPages > 1)
+            {
+                @await Html.PartialAsync("_Pagination", paginationTecnologias)
+            }
+        </div>
+
+        @* ── AROS ── *@
+        <div class="tab-pane fade @(seccion =="aros" ?"show active" :"")" id="panel-aros" role="tabpanel">
+            <div class="card-dashboard mt-0">
+                <div class="card-header bg-white py-2">
+                    <form method="get" asp-action="Index" class="d-flex gap-2 align-items-center flex-wrap">
+                        <input type="hidden" name="seccion" value="aros" />
+                        <input type="hidden" name="page" value="1" />
+                        <input type="hidden" name="pageSize" value="@(Model?.PageSize ?? 12)" />
+                        <input type="hidden" name="filtroProducto" value="@ViewBag.FiltroProducto" />
+                        <input type="hidden" name="filtroTecnologia" value="@ViewBag.FiltroTecnologia" />
+                        <div class="input-group input-group-sm" style="max-width:300px">
+                            <span class="input-group-text rpt-filter-icon"><i class="bi bi-search"></i></span>
+                            <input type="text" name="filtroAro" class="form-control"
+                                   value="@ViewBag.FiltroAro" placeholder="Buscar nombre, SKU..." />
+                        </div>
+                        <button type="submit" class="btn btn-sm rpt-filter-btn">
+                            <i class="bi bi-funnel"></i> Filtrar
+                        </button>
+                        @if (!string.IsNullOrEmpty(ViewBag.FiltroAro))
+                        {
+                            <a asp-action="Index" asp-route-seccion="aros" asp-route-page="1" asp-route-pageSize="@(Model?.PageSize ?? 12)"
+                               class="btn btn-sm btn-link text-decoration-none text-muted">
+                                <i class="bi bi-x-circle"></i> Limpiar
+                            </a>
+                        }
+                    </form>
+                </div>
+                <div class="card-body p-0">
+                    @if (!aros.Any())
+                    {
+                        <div class="text-center py-5">
+                            <i class="bi bi-eyeglasses text-muted" style="font-size:3rem"></i>
+                            <p class="text-muted mt-3">No hay aros registrados.</p>
+                        </div>
+                    }
+                    else
+                    {
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr><th style="width:64px">Imagen</th><th>Nombre</th><th>SKU</th><th>Precio</th><th>Stock</th><th>Estado</th><th class="text-center">Acciones</th></tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in aros)
+                                {
+                                    <tr>
+                                        <td class="text-center">
+                                            @if (!string.IsNullOrEmpty(item.RutaImagen))
+                                            {
+                                                <img src="@item.RutaImagen" alt="" class="rounded border" style="height:48px;width:48px;object-fit:contain" />
+                                            }
+                                            else { <span class="text-muted">—</span> }
+                                        </td>
+                                        <td>@item.Nombre</td>
+                                        <td>@item.SKU</td>
+                                        <td>₡@item.Precio.ToString("N2")</td>
+                                        <td class="@(item.Stock < 6 ?"text-danger fw-bold" :"")">@item.Stock</td>
+                                        <td>
+                                            @if (item.Activo)
+                                            {
+                                                <span class="badge bg-success"><i class="bi bi-check-circle"></i> Activo</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-secondary"><i class="bi bi-x-circle"></i> Inactivo</span>
+                                            }
+                                        </td>
+                                        <td class="text-center">
+                                            <div class="btn-toolbar table-row-toolbar justify-content-center flex-wrap mb-0">
+                                                <div class="btn-group btn-group-sm" role="group">
+                                                    <a asp-controller="Aros" asp-action="Details" asp-route-id="@item.Id" class="btn btn-outline-info">
+                                                        <i class="bi bi-eye"></i><span class="d-none d-xl-inline ms-1">Ver</span>
+                                                    </a>
+                                                    <button type="button" class="btn btn-outline-secondary"
+                                                            onclick="editarAro('@item.Id', '@item.Nombre', '@item.SKU', @item.Precio.ToString("F2"), @item.Stock, @item.Activo.ToString().ToLower())">
+                                                        <i class="bi bi-pencil"></i><span class="d-none d-xl-inline ms-1">Editar</span>
+                                                    </button>
+                                                </div>
+                                                <form asp-controller="Aros" asp-action="Delete" asp-route-id="@item.Id" method="post" class="ms-1"
+                                                      onsubmit="return confirm('¿Desactivar este aro?');">
+                                                    @Html.AntiForgeryToken()
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                        <i class="bi bi-trash"></i><span class="d-none d-xl-inline ms-1">Desactivar</span>
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                </div>
+            </div>
+            @if (paginationAros != null && paginationAros.TotalPages > 1)
+            {
+                @await Html.PartialAsync("_Pagination", paginationAros)
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+}

@@ -1,0 +1,49 @@
+@{
+    var ordenes = ViewBag.Ordenes as IEnumerable<OC.Core.Domain.Entities.OrdenTrabajo> ?? Enumerable.Empty<OC.Core.Domain.Entities.OrdenTrabajo>();
+}
+
+<div class="card-dashboard">
+    <h4>Estado de orden de lentes</h4>
+    <p class="text-muted">Estas son sus órdenes registradas. Puede abrir el detalle de cada una.</p>
+
+    @if (!ordenes.Any())
+    {
+        <div class="alert alert-info">No hay órdenes registradas para su cuenta.</div>
+    }
+    else
+    {
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Estado</th>
+                    <th>Sucursal</th>
+                    <th>Fecha creación</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var o in ordenes)
+                {
+                    <tr>
+                        <td>
+                            @if (o.Estado == OC.Core.Domain.Entities.EstadoOrdenTrabajo.Lista)
+                            { <span class="badge bg-success">Lista</span> }
+                            else if (o.Estado == OC.Core.Domain.Entities.EstadoOrdenTrabajo.Entregada)
+                            { <span class="badge bg-secondary">Entregada</span> }
+                            else if (o.Estado == OC.Core.Domain.Entities.EstadoOrdenTrabajo.EnProceso)
+                            { <span class="badge bg-info">En proceso</span> }
+                            else
+                            { <span class="badge bg-warning text-dark">Pendiente</span> }
+                        </td>
+                        <td>@(o.Sucursal?.Nombre ?? "—")</td>
+                        <td>@o.FechaCreacion.ToString("dd/MM/yyyy HH:mm")</td>
+                        <td class="text-end">
+                            <a asp-action="EstadoOrdenDetalle" asp-route-id="@o.Id" class="btn btn-sm btn-outline-primary">Ver detalle</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>
+

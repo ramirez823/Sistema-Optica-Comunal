@@ -1,0 +1,332 @@
+@model OC.Web.ViewModels.ReporteFidelizacionViewModel
+@{
+    ViewData["Title"] = "Reporte de Fidelización";
+    var labPie = System.Text.Json.JsonSerializer.Serialize(new[] { "Nuevo", "Regular", "Frecuente", "Esporádico" });
+    var datPie = System.Text.Json.JsonSerializer.Serialize(new[] {
+        Model.TotalNuevos, Model.TotalRegulares, Model.TotalFrecuentes, Model.TotalEsporadicos
+    });
+}
+
+<style>
+    :root {
+        --rpt-navy: #1d2452;
+        --rpt-navy-mid: #2a3466;
+        --rpt-blue: #3b82f6;
+        --rpt-amber: #d4a843;
+        --rpt-amber-dark: #a8852e;
+        --rpt-bg: #f1f5f9;
+        --rpt-card: #ffffff;
+        --rpt-text: #1e293b;
+        --rpt-muted: #64748b;
+        --rpt-success: #10b981;
+        --rpt-info: #2980b9;
+    }
+    body { background: var(--rpt-bg); }
+    .rpt-header {
+        background: linear-gradient(135deg, var(--rpt-navy) 0%, var(--rpt-navy-mid) 100%);
+        color: white;
+        padding: 1.25rem 2rem;
+        border-radius: .75rem .75rem 0 0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: .75rem;
+    }
+    .rpt-header .title { font-size: 1.1rem; font-weight: 700; margin: 0; }
+    .rpt-header .title i { color: var(--rpt-amber); margin-right: .5rem; }
+    .rpt-body {
+        background: var(--rpt-bg);
+        padding: 1.5rem 2rem 2rem;
+        border-radius: 0 0 .75rem .75rem;
+    }
+    .rpt-card {
+        background: var(--rpt-card);
+        border-radius: .6rem;
+        padding: 1.25rem;
+        box-shadow: 0 2px 12px rgba(15,23,42,.08);
+        border: none;
+        height: 100%;
+    }
+    .rpt-card h6 {
+        font-weight: 700;
+        font-size: .85rem;
+        text-transform: uppercase;
+        letter-spacing: .04em;
+        color: var(--rpt-text);
+        margin-bottom: 1rem;
+    }
+    .rpt-btn {
+        background: var(--rpt-amber);
+        color: var(--rpt-text);
+        border: none;
+        font-weight: 600;
+        font-size: .82rem;
+        padding: .45rem 1rem;
+        border-radius: .4rem;
+        transition: background .15s;
+    }
+    .rpt-btn:hover { background: var(--rpt-amber-dark); color: white; }
+    .rpt-btn-outline {
+        background: transparent;
+        color: rgba(255,255,255,.75);
+        border: 1.5px solid rgba(255,255,255,.35);
+        font-size: .82rem;
+        padding: .4rem .75rem;
+        border-radius: .4rem;
+        transition: all .15s;
+    }
+    .rpt-btn-outline:hover { color: white; border-color: white; }
+    .rpt-filter {
+        background: var(--rpt-card);
+        border-radius: .6rem;
+        padding: 1rem 1.25rem;
+        margin-bottom: 1.25rem;
+        box-shadow: 0 1px 6px rgba(15,23,42,.06);
+    }
+    .rpt-filter .form-control, .rpt-filter .form-select {
+        border-radius: .4rem;
+        border: 1.5px solid #e2e8f0;
+        font-size: .85rem;
+        padding: .45rem .75rem;
+    }
+    .rpt-kpi-box {
+        border-radius: .6rem;
+        padding: .85rem;
+        text-align: center;
+        box-shadow: 0 1px 6px rgba(15,23,42,.08);
+    }
+    .rpt-kpi-box .val { font-size: 1.5rem; font-weight: 800; }
+    .rpt-kpi-box .lbl { font-size: .72rem; text-transform: uppercase; letter-spacing: .05em; margin-top: .15rem; }
+    .rpt-kpi-nuevo { background: linear-gradient(135deg, #fff8e6, #fef3cc); }
+    .rpt-kpi-nuevo .val { color: var(--rpt-amber-dark); }
+    .rpt-kpi-nuevo .lbl { color: var(--rpt-muted); }
+    .rpt-kpi-regular { background: linear-gradient(135deg, #e8f0fc, #d6e4f7); }
+    .rpt-kpi-regular .val { color: var(--rpt-info); }
+    .rpt-kpi-regular .lbl { color: var(--rpt-muted); }
+    .rpt-kpi-frecuente { background: linear-gradient(135deg, #e8f5ec, #d4edda); }
+    .rpt-kpi-frecuente .val { color: var(--rpt-success); }
+    .rpt-kpi-frecuente .lbl { color: var(--rpt-muted); }
+    .rpt-kpi-esporadico { background: linear-gradient(135deg, #f0f0f0, #e4e4e4); }
+    .rpt-kpi-esporadico .val { color: var(--rpt-muted); }
+    .rpt-kpi-esporadico .lbl { color: var(--rpt-muted); }
+    .rpt-legend { margin-top: 1rem; }
+    .rpt-legend-item { display: flex; align-items: center; gap: .5rem; font-size: .78rem; color: var(--rpt-muted); margin-bottom: .4rem; }
+    .rpt-legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .rpt-table { width: 100%; border-collapse: collapse; font-size: .85rem; }
+    .rpt-table thead th {
+        background: var(--rpt-navy-mid);
+        color: white;
+        padding: .6rem .85rem;
+        text-align: left;
+        font-weight: 600;
+        font-size: .72rem;
+        text-transform: uppercase;
+        letter-spacing: .04em;
+        position: sticky;
+        top: 0;
+    }
+    .rpt-table tbody tr:nth-child(even) { background: #f8f9fb; }
+    .rpt-table tbody tr:hover { background: rgba(59,130,246,.05); }
+    .rpt-table tbody td { padding: .6rem .85rem; border-bottom: 1px solid #eef0f3; vertical-align: middle; }
+    .rpt-scroll-table { max-height: 440px; overflow-y: auto; border-radius: .4rem; }
+    .rpt-search {
+        border-radius: .4rem;
+        border: 1.5px solid #e2e8f0;
+        font-size: .85rem;
+        padding: .45rem .75rem;
+        margin-bottom: .75rem;
+        width: 100%;
+    }
+    .rpt-badge {
+        display: inline-block;
+        padding: .2rem .55rem;
+        border-radius: 2rem;
+        font-size: .7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .04em;
+    }
+    .rpt-badge-nuevo { background: #fff3cd; color: var(--rpt-amber-dark); }
+    .rpt-badge-regular { background: #d6e4f7; color: var(--rpt-info); }
+    .rpt-badge-frecuente { background: #d4edda; color: var(--rpt-success); }
+    .rpt-badge-esporadico { background: #e4e4e4; color: var(--rpt-muted); }
+</style>
+
+<div class="container mt-4">
+
+    <div class="rpt-header">
+        <div class="d-flex align-items-center gap-2">
+            <a asp-action="Index" class="rpt-btn-outline"><i class="bi bi-arrow-left"></i></a>
+            <span class="title"><i class="bi bi-people-fill"></i>Reporte de Fidelización</span>
+        </div>
+        <a asp-action="ExportarFidelizacionExcel"
+           asp-route-desde="@Model.Desde?.ToString("yyyy-MM-dd")"
+           asp-route-hasta="@Model.Hasta?.ToString("yyyy-MM-dd")"
+           asp-route-sucursalId="@Model.SucursalId"
+           target="_blank"
+           class="rpt-btn">
+            <i class="bi bi-file-earmark-excel me-1"></i>Exportar Excel
+        </a>
+    </div>
+
+    <div class="rpt-body">
+
+        <form method="get" asp-action="Fidelizacion" class="rpt-filter">
+            <div class="row g-3 align-items-end">
+                <div class="col-md-3">
+                    <label style="font-size:.75rem;font-weight:600;color:var(--rpt-muted);text-transform:uppercase;letter-spacing:.04em">Desde</label>
+                    <input type="date" name="desde" class="form-control" value="@Model.Desde?.ToString("yyyy-MM-dd")" />
+                </div>
+                <div class="col-md-3">
+                    <label style="font-size:.75rem;font-weight:600;color:var(--rpt-muted);text-transform:uppercase;letter-spacing:.04em">Hasta</label>
+                    <input type="date" name="hasta" class="form-control" value="@Model.Hasta?.ToString("yyyy-MM-dd")" />
+                </div>
+                <div class="col-md-4">
+                    <label style="font-size:.75rem;font-weight:600;color:var(--rpt-muted);text-transform:uppercase;letter-spacing:.04em">Sucursal</label>
+                    <select name="sucursalId" class="form-select">
+                        <option value="">Todas las sucursales</option>
+                        @foreach (var s in Model.Sucursales)
+                        {
+                            <option value="@s.Id" selected="@(Model.SucursalId == s.Id)">@s.Nombre</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="rpt-btn w-100"><i class="bi bi-funnel me-1"></i>Filtrar</button>
+                </div>
+            </div>
+        </form>
+
+        <div class="row g-4">
+
+            @* ── Izquierda: KPIs + gráfica ───────────────────────────────────── *@
+            <div class="col-md-4">
+                <div class="rpt-card">
+                    <h6>Clasificación de pacientes</h6>
+
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <div class="rpt-kpi-box rpt-kpi-nuevo">
+                                <div class="val">@Model.TotalNuevos</div>
+                                <div class="lbl">Nuevos</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="rpt-kpi-box rpt-kpi-regular">
+                                <div class="val">@Model.TotalRegulares</div>
+                                <div class="lbl">Regulares</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="rpt-kpi-box rpt-kpi-frecuente">
+                                <div class="val">@Model.TotalFrecuentes</div>
+                                <div class="lbl">Frecuentes</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="rpt-kpi-box rpt-kpi-esporadico">
+                                <div class="val">@Model.TotalEsporadicos</div>
+                                <div class="lbl">Esporádicos</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <canvas id="chartFidelizacion" height="200"></canvas>
+
+                    <div class="rpt-legend">
+                        <div class="rpt-legend-item">
+                            <span class="rpt-legend-dot" style="background:#d4a843"></span> Nuevo — registrado en el último mes
+                        </div>
+                        <div class="rpt-legend-item">
+                            <span class="rpt-legend-dot" style="background:#2980b9"></span> Regular — 2 a 3 visitas
+                        </div>
+                        <div class="rpt-legend-item">
+                            <span class="rpt-legend-dot" style="background:#10b981"></span> Frecuente — 4+ visitas
+                        </div>
+                        <div class="rpt-legend-item">
+                            <span class="rpt-legend-dot" style="background:#64748b"></span> Esporádico — 1 visita, no es nuevo
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            @* ── Derecha: tabla ────────────────────────────────────────────────── *@
+            <div class="col-md-8">
+                <div class="rpt-card">
+                    <h6>Detalle por paciente</h6>
+
+                    <input type="text" id="filtroPaciente" class="rpt-search"
+                           placeholder="Buscar paciente o cédula...">
+
+                    <div class="rpt-scroll-table">
+                        <table class="rpt-table" id="tablaFidelizacion">
+                            <thead>
+                                <tr>
+                                    <th>Paciente</th>
+                                    <th>Cédula</th>
+                                    <th>Teléfono</th>
+                                    <th>Correo</th>
+                                    <th class="text-center">Visitas</th>
+                                    <th>Última visita</th>
+                                    <th>Categoría</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var p in Model.Detalle)
+                                {
+                                    var badgeClass = p.Clasificacion switch
+                                    {
+                                        "Frecuente" => "rpt-badge-frecuente",
+                                        "Regular" => "rpt-badge-regular",
+                                        "Nuevo" => "rpt-badge-nuevo",
+                                        _ => "rpt-badge-esporadico"
+                                    };
+                                    <tr>
+                                        <td><strong>@p.NombreCompleto</strong></td>
+                                        <td class="text-muted">@p.Cedula</td>
+                                        <td>@(string.IsNullOrWhiteSpace(p.Telefono) ? "-" : p.Telefono)</td>
+                                        <td>@(string.IsNullOrWhiteSpace(p.Email) ? "-" : p.Email)</td>
+                                        <td class="text-center fw-bold" style="color:var(--rpt-navy-mid)">@p.VisitasEnPeriodo</td>
+                                        <td>@p.UltimaVisita.ToString("dd/MM/yyyy")</td>
+                                        <td><span class="rpt-badge @badgeClass">@p.Clasificacion</span></td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+    <script>
+        new Chart(document.getElementById('chartFidelizacion'), {
+            type: 'doughnut',
+            data: {
+                labels: @Html.Raw(labPie),
+                datasets: [{
+                    data: @Html.Raw(datPie),
+                    backgroundColor: ['#d4a843', '#2980b9', '#10b981', '#64748b'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                cutout: '60%',
+                plugins: { legend: { display: false } }
+            }
+        });
+
+        document.getElementById('filtroPaciente').addEventListener('input', function () {
+            const q = this.value.toLowerCase();
+            document.querySelectorAll('#tablaFidelizacion tbody tr').forEach(tr => {
+                tr.style.display = tr.textContent.toLowerCase().includes(q) ? '' : 'none';
+            });
+        });
+    </script>
+}

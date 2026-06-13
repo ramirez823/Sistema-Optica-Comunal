@@ -1,0 +1,120 @@
+﻿@model OC.Web.ViewModels.TicketCierreViewModel
+@{
+    ViewData["Title"] ="Cerrar Ticket";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card-dashboard animate-on-scroll" data-delay="0">
+                <h4 class="mb-4"><i class="bi bi-check2-circle me-2"></i> Cerrar Ticket</h4>
+
+                <div class="alert alert-info mb-4">
+                    <strong>Ticket:</strong> @Model.NumeroSeguimiento - @Model.Titulo
+                    @if (!string.IsNullOrEmpty(Model.TiempoResolucion))
+                    {
+                        <div class="mt-2"><i class="bi bi-clock-history"></i> Tiempo desde asignación: @Model.TiempoResolucion</div>
+                    }
+                </div>
+
+                <form asp-action="Cerrar" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" asp-for="Id" />
+
+                    <div class="mb-3">
+                        <label asp-for="Observaciones" class="form-label fw-semibold">Observaciones de cierre *</label>
+                        <textarea asp-for="Observaciones" class="form-control" rows="4" placeholder="Describa cómo se resolvió el problema..."></textarea>
+                        <span asp-validation-for="Observaciones" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="SolucionAplicada" class="form-label fw-semibold">Solución aplicada</label>
+                        <input asp-for="SolucionAplicada" class="form-control" placeholder="Ej: Reinstalación de controladores, Reemplazo de hardware..." />
+                        <span asp-validation-for="SolucionAplicada" class="text-danger"></span>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="TiempoDedicado" class="form-label fw-semibold">Tiempo dedicado</label>
+                            <input asp-for="TiempoDedicado" class="form-control" placeholder="Ej: 2h 30m, 1 día..." />
+                            <span asp-validation-for="TiempoDedicado" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="SatisfaccionUsuario" class="form-label fw-semibold">Satisfacción del usuario</label>
+                            <select asp-for="SatisfaccionUsuario" class="form-select">
+                                <option value="">Seleccione una calificación</option>
+                                @foreach (var item in Model.SatisfaccionList)
+                                {
+                                    <option value="@item.Value">@item.Text</option>
+                                }
+                            </select>
+                            <span asp-validation-for="SatisfaccionUsuario" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="ComentariosAdicionales" class="form-label fw-semibold">Comentarios adicionales</label>
+                        <textarea asp-for="ComentariosAdicionales" class="form-control" rows="3" placeholder="Información adicional, recomendaciones..."></textarea>
+                        <span asp-validation-for="ComentariosAdicionales" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-4">
+                        <div class="form-check">
+                            <input asp-for="RequiereSeguimiento" class="form-check-input" type="checkbox" />
+                            <label asp-for="RequiereSeguimiento" class="form-check-label">
+                                <i class="bi bi-bell me-1"></i> Requiere seguimiento posterior
+                            </label>
+                            <small class="text-muted d-block">Marque si es necesario dar seguimiento a esta solución</small>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-3">
+                        <button type="submit" class="btn btn-danger">
+                            <i class="bi bi-check2-circle me-2"></i> Cerrar Ticket
+                        </button>
+                        <a asp-action="PanelTecnico" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left me-2"></i> Cancelar
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        anime({
+            targets: '.animate-on-scroll',
+            opacity: [0, 1],
+            translateY: [20, 0],
+            duration: 600,
+            easing: 'easeOutCubic'
+        });
+
+        document.querySelectorAll('. ').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                const ripple = document.createElement('span');
+                const rect = this.getBoundingClientRect();
+                const size = Math.max(rect.width, rect.height);
+                ripple.style.cssText = `
+                    position: absolute;
+                    width: ${size}px;
+                    height: ${size}px;
+                    left: ${e.clientX - rect.left - size/2}px;
+                    top: ${e.clientY - rect.top - size/2}px;
+                    background: rgba(255,255,255,0.4);
+                    border-radius: 50%;
+                    transform: scale(0);
+                    animation: ripple-anim 0.5s ease-out;
+                    pointer-events: none;
+                `;
+                if (getComputedStyle(this).position === 'static') this.style.position = 'relative';
+                this.style.overflow = 'hidden';
+                this.appendChild(ripple);
+                setTimeout(() => ripple.remove(), 500);
+            });
+        });
+    </script>
+}

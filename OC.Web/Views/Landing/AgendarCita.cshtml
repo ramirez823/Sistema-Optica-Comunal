@@ -1,0 +1,168 @@
+﻿@{
+    Layout = "_LayoutLanding";
+    ViewData["Title"] = "Agendar Cita";
+}
+
+<div class="container my-5 pt-5">
+
+    <div class="text-center mb-5 animate-on-scroll">
+        <h6 class="text-uppercase tracking-wide mb-2" style="color: var(--brand-accent); letter-spacing: 2px;">Atención Especializada</h6>
+        <h1 class="display-5 fw-bold text-white">Agendar Cita</h1>
+        <p class="text-light opacity-75 mb-0">Reserva tu espacio con nuestros especialistas visuales.</p>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-12 col-lg-8 col-xl-7 animate-on-scroll">
+            <div class="card card-premium shadow-lg border-0 rounded-4 overflow-hidden">
+
+                <div style="height: 4px; background: linear-gradient(90deg, var(--brand-primary), var(--brand-accent));"></div>
+
+                <div class="card-body p-4 p-md-5">
+
+                    @if (TempData["Success"] != null)
+                    {
+                        <div class="alert alert-success alert-dismissible fade show rounded-3 shadow-sm mb-4">
+                            <i class="bi bi-check-circle me-2"></i> @TempData["Success"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    }
+                    @if (TempData["Error"] != null)
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show rounded-3 shadow-sm mb-4">
+                            <i class="bi bi-exclamation-triangle me-2"></i> @TempData["Error"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    }
+
+                    <form method="post" id="formAgendarCita">
+                        @Html.AntiForgeryToken()
+
+                        <div class="row">
+                            <div class="col-md-6 mb-4">
+                                <label for="sucursalId" class="form-label text-light fw-medium"><i class="bi bi-shop text-primary me-2"></i>Sede <span class="text-danger">*</span></label>
+                                <select name="sucursalId" id="sucursalId" class="form-select input-premium" style="color-scheme: dark;" required>
+                                    <option value="">Seleccione una sede...</option>
+                                    @if (ViewBag.SucursalesList != null)
+                                    {
+                                        foreach (var suc in ViewBag.SucursalesList)
+                                        {
+                                            <option value="@suc.Value">@suc.Text</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+
+                            <div class="col-md-6 mb-4">
+                                <label for="fecha" class="form-label text-light fw-medium"><i class="bi bi-calendar-event text-primary me-2"></i>Fecha <span class="text-danger">*</span></label>
+                                <input type="date" name="fecha" id="fecha" class="form-control input-premium" required min="@DateTime.Now.ToString("yyyy-MM-dd")" style="color-scheme: dark;" />
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="servicio" class="form-label text-light fw-medium"><i class="bi bi-clipboard2-pulse text-primary me-2"></i>Servicio médico <span class="text-danger">*</span></label>
+                            <select name="servicio" id="servicio" class="form-select input-premium" style="color-scheme: dark;" required>
+                                <option value="">Seleccione el tipo de consulta...</option>
+                                @if (ViewBag.ServiciosList != null)
+                                {
+                                    foreach (var servicio in ViewBag.ServiciosList)
+                                    {
+                                        <option value="@servicio.Value">@servicio.Text</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+
+                        <div class="mb-4 p-4 rounded-3" id="bloqueHorario" style="display: none; background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border);">
+                            <label class="d-block mb-2 text-white fw-bold"><i class="bi bi-clock-history text-primary me-2"></i>Horarios Disponibles</label>
+                            <p class="text-light opacity-75 small mb-3">Selecciona la hora que mejor se ajuste a tu agenda:</p>
+
+                            <input type="hidden" name="hora" id="hora" required />
+
+                            <div id="slotsContainer" class="d-flex flex-wrap gap-2"></div>
+
+                            <div id="slotsCargando" class="text-light opacity-75 small py-2" style="display: none;">
+                                <span class="spinner-border spinner-border-sm me-2 text-primary" role="status" aria-hidden="true"></span> Buscando disponibilidad...
+                            </div>
+                            <div id="slotsVacios" class="text-warning small py-2" style="display: none;">
+                                <i class="bi bi-info-circle me-1"></i> No hay horarios disponibles para esta fecha en la sede elegida. Intenta con otro día.
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="motivo" class="form-label text-light fw-medium"><i class="bi bi-chat-left-text text-primary me-2"></i>Notas para el especialista <span class="text-light opacity-50 small">(opcional)</span></label>
+                            <input type="text" name="motivo" id="motivo" class="form-control input-premium" placeholder="Ej: Es mi primera vez usando lentes progresivos..." maxlength="500" />
+                        </div>
+
+                        <button type="submit" class="btn btn-premium w-100 py-3 mt-2 fs-5 shadow-sm">
+                            Confirmar reserva <i class="bi bi-arrow-right ms-2"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            const $sucursal = $('#sucursalId');
+            const $fecha = $('#fecha');
+            const $bloqueHorario = $('#bloqueHorario');
+            const $slotsContainer = $('#slotsContainer');
+            const $slotsCargando = $('#slotsCargando');
+            const $slotsVacios = $('#slotsVacios');
+            const $hora = $('#hora');
+
+            function cargarHorarios() {
+                var sucursalId = $sucursal.val();
+                var fecha = $fecha.val();
+                if (!sucursalId || !fecha) {
+                    $bloqueHorario.hide();
+                    return;
+                }
+
+                $slotsContainer.empty();
+                $bloqueHorario.fadeIn(300);
+                $slotsCargando.show();
+                $slotsVacios.hide();
+                $hora.val('');
+
+                $.get('@Url.Action("ObtenerHorasDisponibles", "Landing")', { sucursalId: sucursalId, fecha: fecha })
+                    .done(function (data) {
+                        $slotsCargando.hide();
+                        if (data && data.length > 0) {
+                            data.forEach(function (slot) {
+                                // CAMBIO VISUAL AQUÍ: Se reemplazó btn-outline-primary por btn-outline-premium
+                                var btn = $('<button type="button" class="btn btn-outline-premium slot-btn">' + slot + '</button>');
+                                btn.click(function () {
+                                    // CAMBIO VISUAL AQUÍ: Se reemplazaron las clases por las premium
+                                    $('.slot-btn').removeClass('btn-premium text-white').addClass('btn-outline-premium');
+                                    $(this).removeClass('btn-outline-premium').addClass('btn-premium text-white');
+                                    $hora.val(slot);
+                                });
+                                $slotsContainer.append(btn);
+                            });
+                        } else {
+                            $slotsVacios.show();
+                        }
+                    })
+                    .fail(function () {
+                        $slotsCargando.hide();
+                        $slotsVacios.text('Error al cargar horarios. Intente más tarde.').show();
+                    });
+            }
+
+            $sucursal.change(cargarHorarios);
+            $fecha.change(cargarHorarios);
+
+            $('#formAgendarCita').submit(function (e) {
+                if (!$hora.val()) {
+                    alert('Debe seleccionar un horario disponible.');
+                    e.preventDefault();
+                }
+            });
+        });
+    </script>
+}

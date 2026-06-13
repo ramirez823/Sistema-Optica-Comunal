@@ -1,0 +1,68 @@
+﻿@model OC.Web.ViewModels.SucursalViewModel
+
+<div class="card-dashboard">
+    <h4><i class="bi bi-building-add me-2"></i> Nueva Sucursal</h4>
+
+    <form asp-action="Create" method="post">
+        <div class="mb-3">
+            <label asp-for="Nombre" class="form-label fw-semibold"></label>
+            <input asp-for="Nombre" class="form-control" />
+            <span asp-validation-for="Nombre" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Direccion" class="form-label fw-semibold"></label>
+            <input asp-for="Direccion" class="form-control" />
+            <span asp-validation-for="Direccion" class="text-danger"></span>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label asp-for="Telefono" class="form-label fw-semibold"></label>
+                <input asp-for="Telefono" class="form-control" />
+                <span asp-validation-for="Telefono" class="text-danger"></span>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label asp-for="TelefonoAdicional" class="form-label fw-semibold">Teléfono adicional</label>
+                <input asp-for="TelefonoAdicional" class="form-control" />
+                <span asp-validation-for="TelefonoAdicional" class="text-danger"></span>
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="HorarioAtencion" class="form-label fw-semibold">Horario de atención</label>
+            <input asp-for="HorarioAtencion" class="form-control" placeholder="Ej: Lun-Vie 8:00-18:00, Sáb 9:00-14:00" />
+            <span asp-validation-for="HorarioAtencion" class="text-danger"></span>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label asp-for="Latitud" class="form-label fw-semibold">Latitud</label>
+                <input asp-for="Latitud" type="number" step="0.000001" class="form-control" placeholder="Ej: 9.928069" />
+                <span asp-validation-for="Latitud" class="text-danger"></span>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label asp-for="Longitud" class="form-label fw-semibold">Longitud</label>
+                <input asp-for="Longitud" type="number" step="0.000001" class="form-control" placeholder="Ej: -84.090724" />
+                <span asp-validation-for="Longitud" class="text-danger"></span>
+            </div>
+        </div>
+
+        <div class="form-footer-actions">
+            <div class="btn-group" role="group">
+                <button type="submit" class="btn btn-brand">
+                    <i class="bi bi-save me-2"></i> Crear Sucursal
+                </button>
+                <a asp-action="Index" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-2"></i> Volver
+                </a>
+            </div>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

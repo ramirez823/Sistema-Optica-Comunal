@@ -1,0 +1,48 @@
+@model OC.Core.Domain.Entities.TecnologiaLente
+@{
+    ViewData["Title"] ="Nueva Tecnología";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card-dashboard animate-on-scroll" data-delay="0">
+                <h4 class="mb-4"><i class="bi bi-eyedropper me-2"></i> Nueva Tecnología de Lente</h4>
+
+                <form asp-action="Create" method="post">
+                    <div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+                    <div class="mb-3">
+                        <label asp-for="Nombre" class="form-label fw-semibold">Nombre *</label>
+                        <input asp-for="Nombre" class="form-control" placeholder="Ej: Monofocal, Progresivo, etc." />
+                        <span asp-validation-for="Nombre" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Precio" class="form-label fw-semibold">Precio (₡)</label>
+                        <input asp-for="Precio" type="number" step="0.01" min="0" class="form-control" placeholder="0.00" />
+                        <div class="form-text">Precio base para esta tecnología. Puede ajustarse en cada venta.</div>
+                    </div>
+
+                    <div class="form-footer-actions">
+                        <div class="btn-group" role="group">
+                            <button type="submit" class="btn btn-brand">
+                                <i class="bi bi-check-lg me-2"></i> Guardar
+                            </button>
+                            <a asp-controller="Inventory" asp-action="Index" asp-route-seccion="tecnologias" class="btn btn-outline-secondary">
+                                <i class="bi bi-x-lg me-2"></i> Cancelar
+                            </a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        anime({ targets: '.animate-on-scroll', opacity: [0,1], translateY: [15,0], duration: 500, easing: 'easeOutQuad' });
+    </script>
+}

@@ -1,0 +1,354 @@
+@model OC.Web.ViewModels.ReporteVentasViewModel
+@{
+    ViewData["Title"] = "Reporte de Ventas";
+    var labFecha = System.Text.Json.JsonSerializer.Serialize(Model.EtiquetasFecha);
+    var datFecha = System.Text.Json.JsonSerializer.Serialize(Model.TotalesPorFecha);
+    var labSuc = System.Text.Json.JsonSerializer.Serialize(Model.EtiquetasSucursal);
+    var datSuc = System.Text.Json.JsonSerializer.Serialize(Model.TotalesPorSucursal);
+    var labMetodo = System.Text.Json.JsonSerializer.Serialize(Model.EtiquetasMetodo);
+    var datMetodo = System.Text.Json.JsonSerializer.Serialize(Model.ConteosPorMetodo);
+    var labTop = System.Text.Json.JsonSerializer.Serialize(Model.TopProductos.Select(x => x.Nombre).ToList());
+    var datTop = System.Text.Json.JsonSerializer.Serialize(Model.TopProductos.Select(x => x.TotalGenerado).ToList());
+}
+
+<style>
+    :root {
+        --rpt-navy: #1d2452;
+        --rpt-navy-mid: #2a3466;
+        --rpt-blue: #3b82f6;
+        --rpt-amber: #d4a843;
+        --rpt-amber-dark: #a8852e;
+        --rpt-bg: #f1f5f9;
+        --rpt-card: #ffffff;
+        --rpt-text: #1e293b;
+        --rpt-muted: #64748b;
+        --rpt-success: #10b981;
+        --rpt-danger: #ef4444;
+    }
+    body { background: var(--rpt-bg); }
+    .rpt-header {
+        background: linear-gradient(135deg, var(--rpt-navy) 0%, var(--rpt-navy-mid) 100%);
+        color: white;
+        padding: 1.25rem 2rem;
+        border-radius: .75rem .75rem 0 0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    .rpt-header .title { font-size: 1.1rem; font-weight: 700; margin: 0; }
+    .rpt-header .title i { color: var(--rpt-amber); margin-right: .5rem; }
+    .rpt-body {
+        background: var(--rpt-bg);
+        padding: 1.5rem 2rem 2rem;
+        border-radius: 0 0 .75rem .75rem;
+    }
+    .rpt-card {
+        background: var(--rpt-card);
+        border-radius: .6rem;
+        padding: 1.25rem;
+        box-shadow: 0 2px 12px rgba(15,23,42,.08);
+        border: none;
+    }
+    .rpt-card h6 {
+        font-weight: 700;
+        font-size: .85rem;
+        text-transform: uppercase;
+        letter-spacing: .04em;
+        color: var(--rpt-text);
+        margin-bottom: 1rem;
+    }
+    .rpt-btn {
+        background: var(--rpt-amber);
+        color: var(--rpt-text);
+        border: none;
+        font-weight: 600;
+        font-size: .82rem;
+        padding: .45rem 1rem;
+        border-radius: .4rem;
+        transition: background .15s;
+    }
+    .rpt-btn:hover { background: var(--rpt-amber-dark); color: white; }
+    .rpt-btn-outline {
+        background: transparent;
+        color: rgba(255,255,255,.75);
+        border: 1.5px solid rgba(255,255,255,.35);
+        font-size: .82rem;
+        padding: .4rem .75rem;
+        border-radius: .4rem;
+        transition: all .15s;
+    }
+    .rpt-btn-outline:hover { color: white; border-color: white; }
+    .rpt-filter {
+        background: var(--rpt-card);
+        border-radius: .6rem;
+        padding: 1rem 1.25rem;
+        margin-bottom: 1.25rem;
+        box-shadow: 0 1px 6px rgba(15,23,42,.06);
+    }
+    .rpt-filter .form-control, .rpt-filter .form-select {
+        border-radius: .4rem;
+        border: 1.5px solid #e2e8f0;
+        font-size: .85rem;
+        padding: .45rem .75rem;
+    }
+    .rpt-kpi {
+        background: linear-gradient(135deg, var(--rpt-navy) 0%, var(--rpt-navy-mid) 100%);
+        color: white;
+        border-radius: .6rem;
+        padding: 1.25rem;
+        text-align: center;
+        box-shadow: 0 2px 12px rgba(15,23,42,.20);
+    }
+    .rpt-kpi .val { font-size: 1.6rem; font-weight: 800; color: var(--rpt-amber); }
+    .rpt-kpi .lbl { font-size: .75rem; opacity: .7; text-transform: uppercase; letter-spacing: .05em; margin-top: .2rem; }
+    .rpt-kpi-secondary {
+        background: var(--rpt-card);
+        border-radius: .6rem;
+        padding: 1.25rem;
+        text-align: center;
+        box-shadow: 0 2px 12px rgba(15,23,42,.08);
+        border-top: 3px solid var(--rpt-blue);
+    }
+    .rpt-kpi-secondary .val { font-size: 1.4rem; font-weight: 800; color: var(--rpt-blue); }
+    .rpt-kpi-secondary .lbl { font-size: .75rem; color: var(--rpt-muted); text-transform: uppercase; letter-spacing: .05em; margin-top: .2rem; }
+    .rpt-table { width: 100%; border-collapse: collapse; font-size: .85rem; }
+    .rpt-table thead th {
+        background: var(--rpt-navy-mid);
+        color: white;
+        padding: .6rem .85rem;
+        text-align: left;
+        font-weight: 600;
+        font-size: .75rem;
+        text-transform: uppercase;
+        letter-spacing: .04em;
+    }
+    .rpt-table tbody tr:nth-child(even) { background: #f8f9fb; }
+    .rpt-table tbody tr:hover { background: rgba(59,130,246,.06); }
+    .rpt-table tbody td { padding: .6rem .85rem; border-bottom: 1px solid #eef0f3; vertical-align: middle; }
+    .rpt-table .text-end { text-align: right; }
+    .rpt-table .text-center { text-align: center; }
+    .rpt-badge { display: inline-block; padding: .25rem .6rem; border-radius: 2rem; font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
+    .rpt-badge-rank { background: var(--rpt-navy-mid); color: white; }
+    .rpt-empty { text-align: center; padding: 3rem; color: var(--rpt-muted); }
+    .rpt-empty i { font-size: 2.5rem; opacity: .35; display: block; margin-bottom: .75rem; }
+</style>
+
+<div class="container mt-4">
+
+    <div class="rpt-header">
+        <div class="d-flex align-items-center gap-2">
+            <a asp-action="Index" class="rpt-btn-outline"><i class="bi bi-arrow-left"></i></a>
+            <span class="title"><i class="bi bi-graph-up-arrow"></i>Reporte de Ventas</span>
+        </div>
+        <a asp-action="ExportarVentasExcel"
+           asp-route-desde="@Model.Desde?.ToString("yyyy-MM-dd")"
+           asp-route-hasta="@Model.Hasta?.ToString("yyyy-MM-dd")"
+           asp-route-sucursalId="@Model.SucursalId"
+           target="_blank"
+           class="rpt-btn">
+            <i class="bi bi-file-earmark-excel me-1"></i>Exportar Excel
+        </a>
+    </div>
+
+    <div class="rpt-body">
+
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger">@TempData["Error"]</div>
+        }
+
+        <form method="get" asp-action="Ventas" class="rpt-filter">
+            <div class="row g-3 align-items-end">
+                <div class="col-md-3">
+                    <label style="font-size:.75rem;font-weight:600;color:var(--rpt-muted);text-transform:uppercase;letter-spacing:.04em">Desde</label>
+                    <input type="date" name="desde" class="form-control" value="@Model.Desde?.ToString("yyyy-MM-dd")" />
+                </div>
+                <div class="col-md-3">
+                    <label style="font-size:.75rem;font-weight:600;color:var(--rpt-muted);text-transform:uppercase;letter-spacing:.04em">Hasta</label>
+                    <input type="date" name="hasta" class="form-control" value="@Model.Hasta?.ToString("yyyy-MM-dd")" />
+                </div>
+                <div class="col-md-4">
+                    <label style="font-size:.75rem;font-weight:600;color:var(--rpt-muted);text-transform:uppercase;letter-spacing:.04em">Sucursal</label>
+                    <select name="sucursalId" class="form-select">
+                        <option value="">Todas</option>
+                        @foreach (var s in Model.Sucursales)
+                        {
+                            <option value="@s.Id" selected="@(Model.SucursalId == s.Id)">@s.Nombre</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="rpt-btn w-100"><i class="bi bi-funnel me-1"></i>Filtrar</button>
+                </div>
+            </div>
+        </form>
+
+        <div class="row g-3 mb-4">
+            <div class="col-md-4">
+                <div class="rpt-kpi">
+                    <div class="val">₡ @Model.TotalGeneral.ToString("N0")</div>
+                    <div class="lbl">Ingresos totales</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="rpt-kpi">
+                    <div class="val">@Model.TotalTransacciones</div>
+                    <div class="lbl">Ventas realizadas</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="rpt-kpi-secondary">
+                    <div class="val">₡ @Model.PromedioVenta.ToString("N0")</div>
+                    <div class="lbl">Promedio por venta</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="rpt-card">
+                    <h6><i class="bi bi-line-chart me-1" style="color:var(--rpt-blue)"></i>Tendencia de ingresos por día</h6>
+                    <canvas id="chartTendencia" height="75"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4 mb-4">
+            <div class="col-md-4">
+                <div class="rpt-card">
+                    <h6><i class="bi bi-credit-card me-1" style="color:var(--rpt-blue)"></i>Por método de pago</h6>
+                    <canvas id="chartMetodo"></canvas>
+                </div>
+            </div>
+            <div class="col-md-8">
+                <div class="rpt-card">
+                    <h6><i class="bi bi-shop me-1" style="color:var(--rpt-blue)"></i>Ingresos por sucursal</h6>
+                    <canvas id="chartSucursal" height="120"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="rpt-card mb-4">
+            <h6><i class="bi bi-trophy me-1" style="color:var(--rpt-amber)"></i>Top 10 productos por ingreso</h6>
+            <canvas id="chartTop" height="80"></canvas>
+        </div>
+
+        @if (Model.TopProductos.Any())
+        {
+            <div class="rpt-card">
+                <h6>Detalle top productos</h6>
+                <table class="rpt-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Producto</th>
+                            <th class="text-center">Unidades</th>
+                            <th class="text-end">Total generado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @{ int rank = 1; }
+                        @foreach (var p in Model.TopProductos)
+                        {
+                            <tr>
+                                <td><span class="rpt-badge rpt-badge-rank">@rank</span></td>
+                                <td><strong>@p.Nombre</strong></td>
+                                <td class="text-center">@p.CantidadVendida</td>
+                                <td class="text-end fw-bold" style="color:var(--rpt-blue)">₡ @p.TotalGenerado.ToString("N0")</td>
+                            </tr>
+                            rank++;
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="rpt-card">
+                <div class="rpt-empty"><i class="bi bi-inbox"></i>No hay datos para el período seleccionado.</div>
+            </div>
+        }
+
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+    <script>
+        const palette = ['#3b82f6','#d4a843','#10b981','#ef4444','#2980b9','#8e44ad','#e67e22'];
+        const blue = '#3b82f6';
+        const amber = '#d4a843';
+        const navy = '#1d2452';
+
+        new Chart(document.getElementById('chartTendencia'), {
+            type: 'line',
+            data: {
+                labels: @Html.Raw(labFecha),
+                datasets: [{
+                    label: 'Ingresos (₡)',
+                    data: @Html.Raw(datFecha),
+                    borderColor: amber,
+                    backgroundColor: 'rgba(212,168,67,.07)',
+                    borderWidth: 2.5,
+                    pointBackgroundColor: amber,
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { grid: { color: 'rgba(0,0,0,.04)' } },
+                    y: { ticks: { callback: v => '₡' + v.toLocaleString('es-CR') }, grid: { color: 'rgba(0,0,0,.04)' } }
+                }
+            }
+        });
+
+        new Chart(document.getElementById('chartMetodo'), {
+            type: 'doughnut',
+            data: {
+                labels: @Html.Raw(labMetodo),
+                datasets: [{ data: @Html.Raw(datMetodo), backgroundColor: palette, borderWidth: 0 }]
+            },
+            options: {
+                responsive: true,
+                cutout: '62%',
+                plugins: { legend: { position: 'bottom', labels: { padding: 16, font: { size: 12 } } } }
+            }
+        });
+
+        new Chart(document.getElementById('chartSucursal'), {
+            type: 'bar',
+            data: {
+                labels: @Html.Raw(labSuc),
+                datasets: [{ label: 'Ingresos (₡)', data: @Html.Raw(datSuc), backgroundColor: palette }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { ticks: { callback: v => '₡' + v.toLocaleString('es-CR') }, grid: { color: 'rgba(0,0,0,.04)' } },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+
+        new Chart(document.getElementById('chartTop'), {
+            type: 'bar',
+            data: {
+                labels: @Html.Raw(labTop),
+                datasets: [{ label: 'Total generado (₡)', data: @Html.Raw(datTop), backgroundColor: navy }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { ticks: { callback: v => '₡' + v.toLocaleString('es-CR') }, grid: { color: 'rgba(0,0,0,.04)' } },
+                    y: { grid: { display: false } }
+                }
+            }
+        });
+    </script>
+}

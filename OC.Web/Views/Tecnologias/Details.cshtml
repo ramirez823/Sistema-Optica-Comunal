@@ -1,0 +1,48 @@
+@model OC.Core.Domain.Entities.TecnologiaLente
+@{
+    ViewData["Title"] = $"Tecnología {Model.Nombre}";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card-dashboard animate-on-scroll" data-delay="0">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4><i class="bi bi-eyedropper me-2"></i> Detalle de Tecnología de Lente</h4>
+                </div>
+
+                <dl class="row">
+                    <dt class="col-sm-4">Nombre</dt>
+                    <dd class="col-sm-8">@Model.Nombre</dd>
+
+                    <dt class="col-sm-4">Precio</dt>
+                    <dd class="col-sm-8">₡@Model.Precio.ToString("N2")</dd>
+                </dl>
+
+                <div class="form-footer-actions justify-content-between align-items-center">
+                    <a asp-controller="Inventory" asp-action="Index" asp-route-seccion="tecnologias" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left me-1"></i> Volver al inventario
+                    </a>
+                    <div class="btn-group" role="group">
+                        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-brand">
+                            <i class="bi bi-pencil me-1"></i> Editar
+                        </a>
+                        <form asp-action="Delete" asp-route-id="@Model.Id" method="post" class="m-0"
+                              onsubmit="return confirm('¿Eliminar esta tecnología?');">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-outline-danger">
+                                <i class="bi bi-trash me-1"></i> Eliminar
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        anime({ targets: '.animate-on-scroll', opacity: [0,1], translateY: [15,0], duration: 500, easing: 'easeOutQuad' });
+    </script>
+}

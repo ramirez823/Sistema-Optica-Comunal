@@ -1,0 +1,30 @@
+@model OC.Web.ViewModels.RestablecerContrasenaViewModel
+@{
+    Layout = "_AuthSimplePage";
+    ViewData["Title"] = "Nueva contraseña";
+}
+
+<div class="text-center mb-4">
+    <h4>Establecer nueva contraseña</h4>
+</div>
+
+<form asp-action="RestablecerContrasenaStaff" method="post">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="token" value="@ViewBag.Token" />
+    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+    <div class="mb-3">
+        <label asp-for="NuevaContrasena" class="form-label"></label>
+        <input asp-for="NuevaContrasena" class="form-control" type="password" autocomplete="new-password" />
+        <span asp-validation-for="NuevaContrasena" class="text-danger small"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="ConfirmarContrasena" class="form-label"></label>
+        <input asp-for="ConfirmarContrasena" class="form-control" type="password" autocomplete="new-password" />
+        <span asp-validation-for="ConfirmarContrasena" class="text-danger small"></span>
+    </div>
+    <button type="submit" class="btn btn-primary w-100">Guardar contraseña</button>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

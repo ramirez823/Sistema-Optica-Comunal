@@ -1,0 +1,550 @@
+@model OC.Web.ViewModels.VentaCreateViewModel
+@{
+    ViewData["Title"] = "Nueva Venta";
+    var pacientes = ViewBag.Pacientes as IEnumerable<OC.Core.Domain.Entities.Paciente>;
+    var tecnologias = ViewBag.Tecnologias as IEnumerable<OC.Core.Domain.Entities.TecnologiaLente>;
+    var aros = ViewBag.Aros as IEnumerable<OC.Core.Domain.Entities.Aro>;
+}
+
+@* Select2 desde CDN *@
+<link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.1.0-rc.0/css/select2.min.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
+
+<div class="card-dashboard">
+    <h4 class="mb-3"><i class="bi bi-cart-plus me-2"></i>Nueva Venta</h4>
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show">
+            @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <form asp-action="Create" method="post" id="formVenta" enctype="multipart/form-data">
+        @Html.AntiForgeryToken()
+
+        <div class="row g-3">
+
+            @* ── COLUMNA IZQUIERDA ─────────────────────────────────────────── *@
+            <div class="col-md-8">
+
+                @* Selección de paciente *@
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <h6 class="card-title">Paciente</h6>
+                        <select id="selectPaciente" class="form-select" style="width:100%;" required>
+                            <option value="">-- Seleccione un paciente --</option>
+                            @foreach (var p in pacientes!)
+                            {
+                                <option value="@p.Id">@p.Apellidos, @p.Nombres — @p.Cedula</option>
+                            }
+                        </select>
+                        <input type="hidden" asp-for="PacienteId" id="hiddenPacienteId" />
+
+                        @* Receta del paciente (aparece si existe ValorClinico) *@
+                        <div id="seccionReceta" class="mt-3" style="display:none;">
+                            <div class="alert alert-info py-2 mb-0">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <div>
+                                        <i class="bi bi-eyeglasses me-1"></i>
+                                        <strong>Receta disponible</strong>
+                                        <span id="lblFechaReceta" class="ms-2 text-muted small"></span>
+                                    </div>
+                                    <div class="form-check form-switch mb-0">
+                                        <input class="form-check-input" type="checkbox"
+                                               id="chkIncluirReceta" role="switch">
+                                        <label class="form-check-label" for="chkIncluirReceta">
+                                            Incluir en factura
+                                        </label>
+                                    </div>
+                                </div>
+                                <div id="tablaReceta" class="mt-2" style="display:none;">
+                                    <table class="table table-sm table-bordered mb-0 bg-white">
+                                        <thead class="table-light">
+                                            <tr><th></th><th>Esfera</th><th>Cilindro</th><th>Eje</th></tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td><strong>OD</strong></td>
+                                                <td id="rcEsferaOD"></td>
+                                                <td id="rcCilindroOD"></td>
+                                                <td id="rcEjeOD"></td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>OI</strong></td>
+                                                <td id="rcEsferaOI"></td>
+                                                <td id="rcCilindroOI"></td>
+                                                <td id="rcEjeOI"></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                    <p class="small text-muted mt-1 mb-0">
+                                        Diagnóstico: <span id="rcDiagnostico"></span>
+                                    </p>
+                                </div>
+                            </div>
+                            <input type="hidden" asp-for="ValorClinicoId" id="hiddenVcId" />
+                        </div>
+                    </div>
+                </div>
+
+                @* Buscador de productos del inventario *@
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <h6 class="card-title">Agregar Producto del Inventario</h6>
+                        <select id="selectProducto" class="form-select" style="width:100%;">
+                            <option value="">-- Seleccione un producto --</option>
+                            @foreach (var p in (ViewBag.Productos as IEnumerable<OC.Core.Domain.Entities.Producto>)!)
+                            {
+                                <option value="@p.Id"
+                                        data-nombre="@p.Nombre"
+                                        data-stock="@p.Stock"
+                                        data-precio="@p.PrecioPublico.ToString("F2")">
+                                    @p.Nombre — SKU: @p.SKU &nbsp;|&nbsp; Stock: @p.Stock &nbsp;|&nbsp; ₡@p.PrecioPublico.ToString("N2")
+                                </option>
+                            }
+                        </select>
+                    </div>
+                </div>
+
+                @* Sección Lentes con tecnología y aros desde BD *@
+                <div class="card mb-3 border-primary">
+                    <div class="card-header bg-primary text-white py-2">
+                        <i class="bi bi-eyeglasses me-1"></i>
+                        <strong>Lentes y Aros</strong>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-2">
+                            <div class="col-md-4">
+                                <label class="form-label form-label-sm">Tecnología del lente</label>
+                                <select id="selectTecnologia" class="form-select form-select-sm">
+                                    <option value="">-- Seleccione tecnología --</option>
+                                    @foreach (var t in tecnologias!)
+                                    {
+                                        <option value="@t.Nombre" data-precio="@t.Precio.ToString("F2")">@t.Nombre</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label form-label-sm">Aro</label>
+                                <select id="selectAro" class="form-select form-select-sm">
+                                    <option value="">-- Seleccione aro --</option>
+                                    @foreach (var a in aros!)
+                                    {
+                                        <option value="@a.Nombre"
+                                                data-precio="@a.Precio.ToString("F2")"
+                                                data-stock="@a.Stock"
+                                                data-id="@a.Id">
+                                            @a.Nombre — Stock: @a.Stock
+                                        </option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-md-4 d-flex align-items-end">
+                                <button type="button" class="btn btn-primary btn-sm w-100"
+                                        onclick="agregarLentes()">
+                                    <i class="bi bi-plus-circle me-1"></i>Agregar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                @* Carrito *@
+                <div class="card">
+                    <div class="card-body">
+                        <h6 class="card-title">Carrito</h6>
+                        <table class="table table-sm" id="tablaCarrito">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Descripción</th>
+                                    <th style="width:80px">Cant.</th>
+                                    <th style="width:130px">Precio ₡</th>
+                                    <th class="text-end" style="width:120px">Subtotal</th>
+                                    <th style="width:40px"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="carritoBody">
+                                <tr id="carritoVacio">
+                                    <td colspan="5" class="text-center text-muted py-3">
+                                        Sin productos aún.
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <input type="hidden" asp-for="DetallesJson" id="hiddenDetallesJson" />
+                    </div>
+                </div>
+            </div>
+
+            @* ── COLUMNA DERECHA: Resumen y pago ──────────────────────────── *@
+            <div class="col-md-4">
+                <div class="card sticky-top" style="top:80px;">
+                    <div class="card-body">
+
+                        @* 1. Método de pago (PRIMERO) *@
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Método de pago</label>
+                            @foreach (OC.Core.Domain.Enums.MetodoPago mp in ViewBag.MetodosPago)
+                            {
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio"
+                                           name="MetodoPago" value="@((int)mp)"
+                                           id="mp_@mp"
+                                           @(mp == OC.Core.Domain.Enums.MetodoPago.Efectivo ? "checked" : "")>
+                                    <label class="form-check-label" for="mp_@mp">@mp</label>
+                                </div>
+                            }
+                        </div>
+
+                        @* 2. Referencia + archivo (visible si no es Efectivo) *@
+                        <div id="seccionReferencia" class="mb-3" style="display:none;">
+                            <label class="form-label fw-semibold">Referencia de pago</label>
+                            <input type="text" id="referenciaPago" asp-for="ReferenciaPago"
+                                   class="form-control mb-2"
+                                   placeholder="Número de transacción" />
+                            <label class="form-label fw-semibold">Comprobante de pago</label>
+                            <input type="file" id="comprobante" name="comprobante"
+                                   class="form-control"
+                                   accept=".jpg,.jpeg,.pdf" />
+                            <div class="form-text">Solo .jpg, .jpeg o .pdf (máx. 10MB)</div>
+                        </div>
+
+                        @* 3. Descuento porcentual *@
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Descuento %</label>
+                            <input type="number" id="inputDescuento" asp-for="Descuento"
+                                   class="form-control" min="0" max="100" step="0.01" value="0"
+                                   placeholder="0.00" />
+                        </div>
+
+                        @* 4. Resumen / Total con IVA *@
+                        <div class="border-top pt-2 mb-3">
+                            <div class="d-flex justify-content-between">
+                                <span>Subtotal:</span>
+                                <span>₡ <span id="lblSubtotal">0.00</span></span>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span>Descuento (<span id="lblDescuentoPct">0</span>%):</span>
+                                <span>₡ <span id="lblDescuento">0.00</span></span>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span>IVA (13%):</span>
+                                <span>₡ <span id="lblIva">0.00</span></span>
+                            </div>
+                            <div class="d-flex justify-content-between fs-5 fw-bold">
+                                <span>Total:</span>
+                                <span>₡ <span id="lblTotal">0.00</span></span>
+                            </div>
+                        </div>
+
+                        @* 5. Notas (solo observaciones internas) *@
+                        <div class="mb-3">
+                            <label asp-for="Notas" class="form-label">Notas (opcional)</label>
+                            <textarea asp-for="Notas" class="form-control" rows="2"
+                                      placeholder="Observaciones internas..."></textarea>
+                        </div>
+
+                        @* 6. Botones *@
+                        <button type="submit" class="btn btn-success w-100"
+                                id="btnConfirmar" disabled>
+                            <i class="bi bi-check-circle me-1"></i>Confirmar Venta
+                        </button>
+                        <a asp-action="Index" class="btn btn-outline-secondary w-100 mt-2">
+                            Cancelar
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.1.0-rc.0/js/select2.min.js"></script>
+    <script>
+        // ─── Estado ───────────────────────────────────────────────────────────────
+        let carrito  = [];
+        let vcActual = null;
+
+        // ─── Select2: Paciente ────────────────────────────────────────────────────
+        $('#selectPaciente').select2({
+            theme: 'bootstrap-5',
+            placeholder: '-- Seleccione un paciente --',
+            allowClear: true
+        }).on('change', async function () {
+            const id = $(this).val();
+            document.getElementById('hiddenPacienteId').value = id || '';
+
+            if (!id) { ocultarReceta(); actualizarBoton(); return; }
+
+            try {
+                const res  = await fetch(`/Ventas/BuscarPaciente?id=${id}`);
+                const data = await res.json();
+                if (data.valorClinico) {
+                    vcActual = data.valorClinico;
+                    mostrarSeccionReceta(data.valorClinico);
+                } else {
+                    vcActual = null;
+                    ocultarReceta();
+                }
+            } catch { console.error('Error al cargar paciente'); }
+
+            actualizarBoton();
+        });
+
+        // ─── Select2: Productos — incluye precioPublico en data ─────────────────
+        $('#selectProducto').select2({
+            theme: 'bootstrap-5',
+            placeholder: '-- Seleccione un producto --',
+            allowClear: true,
+            minimumInputLength: 0
+        }).on('select2:select', function (e) {
+            const opt   = e.params.data.element;
+            const stock = parseInt(opt.dataset.stock);
+            const id    = parseInt(e.params.data.id);
+            const nombre = opt.dataset.nombre;
+            const precio = parseFloat(opt.dataset.precio) || 0;
+
+            if (stock <= 0) {
+                alert('Este producto no tiene stock disponible.');
+                $(this).val(null).trigger('change');
+                return;
+            }
+
+            agregarAlCarrito(id, nombre, stock, precio);
+            $(this).val(null).trigger('change');
+        });
+
+        // ─── Select2: Aro ────────────────────────────────────────────────────────
+        $('#selectAro').select2({
+            theme: 'bootstrap-5',
+            placeholder: '-- Seleccione aro --'
+        });
+
+        // ─── Select2: Tecnología ────────────────────────────────────────────────
+        $('#selectTecnologia').select2({
+            theme: 'bootstrap-5',
+            placeholder: '-- Seleccione tecnología --'
+        });
+
+        // ─── Mostrar/ocultar sección referencia según método de pago ──────────────
+        document.querySelectorAll('input[name="MetodoPago"]').forEach(function(radio) {
+            radio.addEventListener('change', function() {
+                const seccion = document.getElementById('seccionReferencia');
+                seccion.style.display = this.value !== '1' ? 'block' : 'none';
+            });
+        });
+
+        // ─── Descuento porcentual: recalcular total ──────────────────────────────
+        document.getElementById('inputDescuento').addEventListener('input', function() {
+            actualizarTotal();
+        });
+
+        // ─── Receta ───────────────────────────────────────────────────────────────
+        function mostrarSeccionReceta(vc) {
+            document.getElementById('seccionReceta').style.display = 'block';
+            document.getElementById('lblFechaReceta').textContent  = `(${vc.fecha})`;
+            document.getElementById('rcDiagnostico').textContent   = vc.diagnostico;
+            document.getElementById('rcEsferaOD').textContent      = vc.esferaOD;
+            document.getElementById('rcCilindroOD').textContent    = vc.cilindroOD;
+            document.getElementById('rcEjeOD').textContent         = vc.ejeOD;
+            document.getElementById('rcEsferaOI').textContent      = vc.esferaOI;
+            document.getElementById('rcCilindroOI').textContent    = vc.cilindroOI;
+            document.getElementById('rcEjeOI').textContent         = vc.ejeOI;
+        }
+
+        function ocultarReceta() {
+            document.getElementById('seccionReceta').style.display = 'none';
+            document.getElementById('hiddenVcId').value            = '';
+            document.getElementById('chkIncluirReceta').checked    = false;
+            document.getElementById('tablaReceta').style.display   = 'none';
+        }
+
+        document.getElementById('chkIncluirReceta').addEventListener('change', function () {
+            document.getElementById('tablaReceta').style.display = this.checked ? 'block' : 'none';
+            document.getElementById('hiddenVcId').value = this.checked && vcActual ? vcActual.id : '';
+        });
+
+        // ─── Lentes ───────────────────────────────────────────────────────────────
+        function agregarLentes() {
+            const selectTec = document.getElementById('selectTecnologia');
+            const selectAro = document.getElementById('selectAro');
+
+            const tecnologiaOpt = selectTec.selectedOptions[0];
+            const aroOpt = selectAro.selectedOptions[0];
+
+            const tecnologia = selectTec.value;
+            const precioLente = tecnologiaOpt ? parseFloat(tecnologiaOpt.dataset.precio) || 0 : 0;
+            const precioAro = aroOpt ? parseFloat(aroOpt.dataset.precio) || 0 : 0;
+            const aroStock = aroOpt ? parseInt(aroOpt.dataset.stock) || null : null;
+
+            if (precioLente <= 0 && precioAro <= 0) {
+                alert('Seleccioná al menos una tecnología o aro con precio definido.');
+                return;
+            }
+
+            if (precioLente > 0) {
+                carrito.push({
+                    productoId:          null,
+                    descripcionSnapshot: tecnologia ? `Lentes ${tecnologia}` : 'Lentes',
+                    cantidad:            1,
+                    precioUnitario:      precioLente,
+                    stockMax:            null
+                });
+            }
+
+            if (precioAro > 0) {
+                if (aroStock !== null && aroStock <= 0) {
+                    alert('El aro seleccionado no tiene stock.');
+                    return;
+                }
+                carrito.push({
+                    productoId:          null,
+                    descripcionSnapshot: selectAro.value || 'Aro',
+                    cantidad:            1,
+                    precioUnitario:      precioAro,
+                    stockMax:            aroStock
+                });
+            }
+
+            selectTec.value = '';
+            $('#selectTecnologia').val(null).trigger('change');
+            $('#selectAro').val(null).trigger('change');
+            renderCarrito();
+        }
+
+        // ─── Carrito ──────────────────────────────────────────────────────────────
+        function agregarAlCarrito(productoId, nombre, stock, precio) {
+            const existente = carrito.find(x => x.productoId === productoId);
+            if (existente) {
+                if (existente.cantidad >= stock) {
+                    alert(`Stock insuficiente. Máximo disponible: ${stock}`);
+                    return;
+                }
+                existente.cantidad++;
+            } else {
+                carrito.push({
+                    productoId,
+                    descripcionSnapshot: nombre,
+                    cantidad:            1,
+                    precioUnitario:      precio,
+                    stockMax:            stock
+                });
+            }
+            renderCarrito();
+        }
+
+        function renderCarrito() {
+            const tbody = document.getElementById('carritoBody');
+
+            if (!carrito.length) {
+                tbody.innerHTML = `<tr id="carritoVacio">
+                    <td colspan="5" class="text-center text-muted py-3">Sin productos aún.</td>
+                </tr>`;
+                actualizarTotal();
+                actualizarBoton();
+                return;
+            }
+
+            tbody.innerHTML = carrito.map((item, i) => `
+                <tr>
+                    <td>
+                        ${item.productoId === null
+                            ? `<span class="badge bg-primary me-1">L/A</span>`
+                            : ''}
+                        ${item.descripcionSnapshot}
+                    </td>
+                    <td>
+                        <input type="number" class="form-control form-control-sm"
+                               value="${item.cantidad}" min="1"
+                               ${item.stockMax !== null ? `max="${item.stockMax}"` : ''}
+                               onchange="actualizarCantidad(${i}, this.value)">
+                    </td>
+                    <td class="text-end">
+                        ₡ ${item.precioUnitario.toFixed(2)}
+                    </td>
+                    <td class="text-end">
+                        ₡ ${(item.cantidad * item.precioUnitario).toFixed(2)}
+                    </td>
+                    <td>
+                        <button type="button" class="btn btn-sm btn-outline-danger"
+                                onclick="eliminarDelCarrito(${i})">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+
+            actualizarTotal();
+            actualizarBoton();
+            sincronizarJson();
+        }
+
+        function actualizarCantidad(i, val) {
+            const max = carrito[i].stockMax;
+            let cantidad = parseInt(val) || 1;
+            if (max !== null) cantidad = Math.min(cantidad, max);
+            carrito[i].cantidad = Math.max(1, cantidad);
+            renderCarrito();
+        }
+
+        function eliminarDelCarrito(i) {
+            carrito.splice(i, 1);
+            renderCarrito();
+        }
+
+        function actualizarTotal() {
+            const subtotal = carrito.reduce((s, x) => s + x.cantidad * x.precioUnitario, 0);
+            const descuentoPct = parseFloat(document.getElementById('inputDescuento').value) || 0;
+            const montoDescuento = subtotal * (descuentoPct / 100);
+            const dopoDescuento = subtotal - montoDescuento;
+            const iva = dopoDescuento * 0.13;
+            const total = dopoDescuento + iva;
+            document.getElementById('lblSubtotal').textContent = subtotal.toFixed(2);
+            document.getElementById('lblDescuentoPct').textContent = descuentoPct.toFixed(2);
+            document.getElementById('lblDescuento').textContent = montoDescuento.toFixed(2);
+            document.getElementById('lblIva').textContent = iva.toFixed(2);
+            document.getElementById('lblTotal').textContent = total.toFixed(2);
+        }
+
+        function actualizarBoton() {
+            const pacienteOk = document.getElementById('hiddenPacienteId').value !== '';
+            const carritoOk  = carrito.length > 0;
+            document.getElementById('btnConfirmar').disabled = !(pacienteOk && carritoOk);
+        }
+
+        function sincronizarJson() {
+            const payload = carrito.map(x => ({
+                productoId:          x.productoId,
+                descripcionSnapshot: x.descripcionSnapshot,
+                cantidad:            x.cantidad,
+                precioUnitario:      x.precioUnitario
+            }));
+            document.getElementById('hiddenDetallesJson').value = JSON.stringify(payload);
+        }
+
+        document.getElementById('formVenta').addEventListener('submit', function (e) {
+            sincronizarJson();
+
+            if (!carrito.length) {
+                e.preventDefault();
+                alert('El carrito está vacío.');
+                return;
+            }
+
+            // Validar que haya comprobante si no es efectivo
+            const metodoPago = document.querySelector('input[name="MetodoPago"]:checked').value;
+            if (metodoPago !== '1') {
+                const fileInput = document.getElementById('comprobante');
+                if (!fileInput.files || fileInput.files.length === 0) {
+                    e.preventDefault();
+                    alert('Debe adjuntar un comprobante de pago para métodos distinta de Efectivo.');
+                    return;
+                }
+            }
+        });
+    </script>
+}

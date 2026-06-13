@@ -1,0 +1,102 @@
+@model OC.Core.Common.PagedResult<OC.Core.Domain.Entities.Planilla>
+@{
+    ViewData["Title"] = "Planillas";
+    var pagination = new PaginationInfo
+    {
+        CurrentPage = Model.PageIndex,
+        TotalPages = Model.TotalPages,
+        GetPageUrl = (page) => Url.Action("Index", new { page })
+    };
+}
+
+<div class="container-fluid px-4">
+    <div class="page-header animate-fade-up">
+        <div class="page-header-text">
+            <div class="page-header-icon"><i class="bi bi-calculator"></i></div>
+            <div>
+                <h1 class="page-title">Historial de Planillas</h1>
+                <p class="page-subtitle">
+                    <i class="bi bi-info-circle me-1"></i>
+                    @(Model.TotalCount == 0 ? "Sin planillas." : $"{Model.TotalCount} planilla(s) calculada(s).")
+                </p>
+            </div>
+        </div>
+        <div class="page-actions">
+            <a asp-action="Create" class="btn btn-brand">
+                <i class="bi bi-plus-circle me-1"></i> Nuevo cálculo
+            </a>
+        </div>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show animate-fade-up mb-3" role="alert">
+            <i class="bi bi-check-circle me-2"></i>@TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="card-dashboard animate-fade-up delay-1">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Empleado</th>
+                            <th>Mes / Año</th>
+                            <th>Salario Neto</th>
+                            <th>Fecha Cálculo</th>
+                            <th>Comprobante</th>
+                            <th class="text-center" style="width:160px">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var p in Model.Items)
+                        {
+                            <tr>
+                                <td>
+                                    <div class="entity-cell">
+                                        <div class="entity-avatar bg-info-subtle text-info-emphasis">
+                                            <i class="bi bi-person-fill"></i>
+                                        </div>
+                                        <div class="fw-semibold">@p.Usuario?.Nombre</div>
+                                    </div>
+                                </td>
+                                <td>@p.Mes / @p.Año</td>
+                                <td class="fw-semibold">@($"₡{p.SalarioNeto:N0}")</td>
+                                <td>@p.FechaCalculo.ToString("dd/MM/yyyy")</td>
+                                <td><code class="text-muted small">@p.NumeroComprobante</code></td>
+                                <td class="text-center">
+                                    <div class="action-buttons">
+                                        <a asp-action="Comprobante" asp-route-id="@p.Id"
+                                           class="btn-action btn-action-info" target="_blank" title="Ver/Imprimir">
+                                            <i class="bi bi-printer"></i>
+                                        </a>
+                                        <a asp-action="Edit" asp-route-id="@p.Id"
+                                           class="btn-action btn-action-primary" title="Editar">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            @if (!Model.Items.Any())
+            {
+                <div class="empty-state">
+                    <div class="empty-state-icon"><i class="bi bi-calculator"></i></div>
+                    <h5 class="empty-state-title">No hay planillas registradas</h5>
+                    <p class="empty-state-text">Genera el primer cálculo de planilla para empezar.</p>
+                    <a asp-action="Create" class="btn btn-brand">
+                        <i class="bi bi-plus-circle me-1"></i> Calcular primera
+                    </a>
+                </div>
+            }
+        </div>
+    </div>
+
+    @await Html.PartialAsync("_Pagination", pagination)
+</div>

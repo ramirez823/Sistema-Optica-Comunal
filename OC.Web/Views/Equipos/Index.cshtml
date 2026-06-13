@@ -1,0 +1,164 @@
+@model OC.Core.Common.PagedResult<OC.Core.Domain.Entities.Equipo>
+@{
+    ViewData["Title"] = "Equipos TI";
+    var search = ViewBag.Search as string;
+    var pagination = new PaginationInfo
+    {
+        CurrentPage = Model.PageIndex,
+        TotalPages = Model.TotalPages,
+        GetPageUrl = (page) => Url.Action("Index", new { page, search })
+    };
+}
+
+<div class="container-fluid px-4">
+    <div class="page-header animate-fade-up">
+        <div class="page-header-text">
+            <div class="page-header-icon"><i class="bi bi-pc-display"></i></div>
+            <div>
+                <h1 class="page-title">Equipos TI</h1>
+                <p class="page-subtitle">
+                    <i class="bi bi-info-circle me-1"></i>
+                    @(Model.TotalCount == 0 ? "Sin equipos registrados." : $"{Model.TotalCount} equipo(s) en inventario.")
+                </p>
+            </div>
+        </div>
+        <div class="page-actions">
+            <a asp-action="Create" class="btn btn-brand">
+                <i class="bi bi-plus-circle me-1"></i> Nuevo Equipo
+            </a>
+        </div>
+    </div>
+
+    <div class="card-dashboard animate-fade-up delay-1 mb-3">
+        <div class="card-body filter-bar">
+            <form method="get" asp-action="Index" class="row g-2 align-items-end">
+                <div class="col-12 col-md-8 col-lg-6">
+                    <label class="form-label">Buscar</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-search"></i></span>
+                        <input type="text" name="search" class="form-control"
+                               placeholder="Nombre, inventario o serie" value="@search" autocomplete="off" />
+                    </div>
+                </div>
+                <div class="col-6 col-md-2">
+                    <button type="submit" class="btn btn-outline-primary w-100">
+                        <i class="bi bi-funnel me-1"></i> Filtrar
+                    </button>
+                </div>
+                @if (!string.IsNullOrEmpty(search))
+                {
+                    <div class="col-6 col-md-2">
+                        <a asp-action="Index" class="btn btn-outline-secondary w-100">
+                            <i class="bi bi-x-circle me-1"></i> Limpiar
+                        </a>
+                    </div>
+                }
+            </form>
+        </div>
+    </div>
+
+    <div class="card-dashboard animate-fade-up delay-2">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Equipo</th>
+                            <th>Tipo</th>
+                            <th>Marca/Modelo</th>
+                            <th>Usuario asignado</th>
+                            <th>Inventario</th>
+                            <th class="text-center" style="width:120px">Estado</th>
+                            <th class="text-center" style="width:160px">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var e in Model.Items)
+                        {
+                            <tr>
+                                <td>
+                                    <div class="entity-cell">
+                                        <div class="entity-avatar bg-info-subtle text-info-emphasis">
+                                            <i class="bi bi-pc-display"></i>
+                                        </div>
+                                        <div>
+                                            <div class="fw-semibold">@e.Nombre</div>
+                                            <div class="text-muted small">Equipo #@e.Id</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>@e.Tipo</td>
+                                <td>@e.Marca @e.Modelo</td>
+                                <td>@(e.UsuarioAsignado?.Nombre ?? "—")</td>
+                                <td><code class="text-muted small">@e.Inventario</code></td>
+                                <td class="text-center">
+                                    @if (e.Activo)
+                                    {
+                                        <span class="status-badge status-badge-active">
+                                            <i class="bi bi-check-circle-fill"></i> Activo
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="status-badge status-badge-inactive">
+                                            <i class="bi bi-pause-circle-fill"></i> Inactivo
+                                        </span>
+                                    }
+                                </td>
+                                <td class="text-center">
+                                    <div class="action-buttons">
+                                        <a asp-action="Details" asp-route-id="@e.Id"
+                                           class="btn-action btn-action-info" title="Ver">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        <a asp-action="Edit" asp-route-id="@e.Id"
+                                           class="btn-action btn-action-primary" title="Editar">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <form asp-action="ToggleStatus" asp-route-id="@e.Id" method="post"
+                                              class="d-inline" onsubmit="return confirm('¿Cambiar estado?');">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit"
+                                                    class="btn-action @(e.Activo ? "btn-action-danger" : "btn-action-success")"
+                                                    title="@(e.Activo ? "Desactivar" : "Activar")">
+                                                <i class="bi @(e.Activo ? "bi-pause-fill" : "bi-play-fill")"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            @if (!Model.Items.Any())
+            {
+                <div class="empty-state">
+                    <div class="empty-state-icon"><i class="bi bi-pc-display"></i></div>
+                    <h5 class="empty-state-title">
+                        @(string.IsNullOrEmpty(search) ? "No hay equipos registrados" : "Sin resultados para tu búsqueda")
+                    </h5>
+                    <p class="empty-state-text">
+                        @if (string.IsNullOrEmpty(search))
+                        {
+                            <span>Registra el primer equipo del inventario TI.</span>
+                        }
+                        else
+                        {
+                            <span>No se encontraron equipos que coincidan con «@search».</span>
+                        }
+                    </p>
+                    @if (string.IsNullOrEmpty(search))
+                    {
+                        <a asp-action="Create" class="btn btn-brand">
+                            <i class="bi bi-plus-circle me-1"></i> Registrar el primero
+                        </a>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+
+    @await Html.PartialAsync("_Pagination", pagination)
+</div>

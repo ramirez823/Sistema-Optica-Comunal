@@ -1,0 +1,290 @@
+@{
+    Layout = "_LayoutLanding";
+    ViewData["Title"] = "Mi carrito";
+    var sucursales = ViewBag.Sucursales as IList<OC.Core.Domain.Entities.Sucursal> ?? new List<OC.Core.Domain.Entities.Sucursal>();
+}
+@model List<OC.Web.ViewModels.DetalleVentaInputModel>
+
+<div class="container my-5 landing-carrito landing-paciente animate-on-scroll">
+    <div class="row justify-content-center">
+        <div class="col-xl-10">
+
+            <h1 class="text-center mb-4 fw-bold text-white">
+                <i class="bi bi-cart3 text-info me-2"></i>Mi carrito
+            </h1>
+
+            @if (TempData["Success"] != null)
+            {
+                <div class="alert alert-success shadow-sm rounded-4 border-0">
+                    <i class="bi bi-check-circle me-2"></i>@TempData["Success"]
+                </div>
+            }
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger shadow-sm rounded-4 border-0">
+                    <i class="bi bi-exclamation-triangle me-2"></i>@TempData["Error"]
+                </div>
+            }
+
+            @if (Model == null || !Model.Any())
+            {
+                <div class="card-premium text-center shadow-sm p-5 rounded-4 border-0 mt-4">
+                    <i class="bi bi-cart-x display-1 text-info opacity-50 mb-3 d-block"></i>
+                    <h4 class="text-white fw-medium mb-3">Tu carrito está vacío</h4>
+                    <p class="text-light opacity-75 mb-4">Aún no has agregado ningún lente o producto a tu carrito de compras.</p>
+                    <a href="/landing/catalogo" class="btn btn-premium px-4 py-2">
+                        <i class="bi bi-shop me-2"></i>Ver productos
+                    </a>
+                </div>
+            }
+            else
+            {
+                <form id="formCarrito" method="post" asp-controller="Landing" asp-action="FinalizarCompra" enctype="multipart/form-data">
+
+                    <div class="card-premium border-0 shadow-sm mb-4 rounded-4">
+                        <div class="card-body p-4">
+                            <label class="form-label text-light fw-semibold mb-3">
+                                <i class="bi bi-shop text-info me-2"></i>Sucursal de retiro / atención <span class="text-danger">*</span>
+                            </label>
+                            <select name="sucursalId" id="sucursalId" class="form-select form-select-lg input-premium text-light" style="color-scheme: dark;" required>
+                                <option value="" style="background-color: #060b14; color: #f8fafc;">Seleccione una sucursal</option>
+                                @foreach (var s in sucursales)
+                                {
+                                    <option value="@s.Id" style="background-color: #060b14; color: #f8fafc;">@(s.Nombre + " - " + s.Direccion)</option>
+                                }
+                            </select>
+                            <div class="form-text text-light opacity-75 mt-2">
+                                <i class="bi bi-info-circle me-1"></i>Obligatorio. La compra quedará asociada a la sucursal elegida.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive card-premium border-0 shadow-sm mb-4 rounded-4 p-3">
+                        <table class="table table-hover align-middle mb-0 landing-table-dark landing-citas-table" id="tablaCarrito" style="text-shadow: none !important;">
+                            <thead class="border-bottom border-secondary border-opacity-25">
+                                <tr class="text-light opacity-75">
+                                    <th class="fw-medium pb-3 border-0">Producto</th>
+                                    <th style="width:120px" class="fw-medium pb-3 border-0">Cantidad</th>
+                                    <th style="width:140px" class="text-end fw-medium pb-3 border-0">Precio unit.</th>
+                                    <th style="width:140px" class="text-end fw-medium pb-3 border-0">Subtotal</th>
+                                    <th style="width:56px" class="pb-3 border-0"></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @for (int i = 0; i < Model.Count; i++)
+                                {
+                                    <tr data-index="@i" class="border-bottom border-secondary border-opacity-10">
+                                        <td class="py-3 border-0" style="text-shadow: none !important; transform: translateZ(0); -webkit-font-smoothing: auto;">
+                                            <span class="text-light fw-medium d-block">@Model[i].DescripcionSnapshot</span>
+                                            <input type="hidden" name="detalles[@i].ProductoId" value="@Model[i].ProductoId" />
+                                            <input type="hidden" name="detalles[@i].DescripcionSnapshot" value="@Model[i].DescripcionSnapshot" />
+                                        </td>
+                                        <td class="py-3 border-0">
+                                            <input type="number" name="detalles[@i].Cantidad" value="@Model[i].Cantidad" min="1" class="form-control cantidad input-premium text-light text-center" />
+                                        </td>
+                                        <td class="text-end py-3 border-0">
+                                            <input type="hidden" name="detalles[@i].PrecioUnitario" value="@Model[i].PrecioUnitario.ToString("G29", System.Globalization.CultureInfo.InvariantCulture)" />
+                                            <span class="text-light">₡ @Model[i].PrecioUnitario.ToString("N2")</span>
+                                        </td>
+                                        <td class="text-end subtotal text-info fw-semibold py-3 border-0">
+                                            ₡ @((Model[i].Cantidad * Model[i].PrecioUnitario).ToString("N2"))
+                                        </td>
+                                        <td class="text-end py-3 border-0">
+                                            <button type="button" class="btn btn-sm btn-outline-danger eliminar-item rounded-3" title="Quitar línea">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                            <tfoot class="border-top border-secondary border-opacity-25 text-light">
+                                <tr>
+                                    <th colspan="3" class="text-end fw-normal pt-3 border-0">Subtotal gravado</th>
+                                    <th class="text-end pt-3 border-0" id="filaSubtotal">₡ 0.00</th>
+                                    <th class="border-0"></th>
+                                </tr>
+                                <tr>
+                                    <th colspan="3" class="text-end fw-normal pt-2 border-0">IVA 13%</th>
+                                    <th class="text-end pt-2 text-info opacity-75 border-0" id="filaIva">₡ 0.00</th>
+                                    <th class="border-0"></th>
+                                </tr>
+                                <tr class="fs-5">
+                                    <th colspan="3" class="text-end fw-bold pt-3 pb-2 border-0">Total a pagar</th>
+                                    <th class="text-end text-info fw-bold pt-3 pb-2 border-0" id="totalGeneral">₡ 0.00</th>
+                                    <th class="border-0"></th>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+
+                    <div class="row g-4 mb-4">
+                        <div class="col-lg-6">
+                            <div class="card-premium border-0 shadow-sm h-100 rounded-4 p-4">
+                                <h5 class="card-title text-white fw-bold mb-3">
+                                    <i class="bi bi-wallet2 text-info me-2"></i>Método de pago
+                                </h5>
+                                <p class="small text-light opacity-75 mb-4">En la tienda en línea solo aceptamos efectivo o SINPE Móvil.</p>
+
+                                <div class="form-check mb-3 p-3 rounded-3 border border-secondary border-opacity-25">
+                                    <input class="form-check-input ms-1" type="radio" name="metodoPago" value="1" id="mpEfectivo" checked>
+                                    <label class="form-check-label text-light fw-medium ms-2" for="mpEfectivo">
+                                        <i class="bi bi-cash-coin me-1"></i> Efectivo
+                                    </label>
+                                </div>
+                                <div class="form-check p-3 rounded-3 border border-secondary border-opacity-25">
+                                    <input class="form-check-input ms-1" type="radio" name="metodoPago" value="2" id="mpSINPE">
+                                    <label class="form-check-label text-light fw-medium ms-2" for="mpSINPE">
+                                        <i class="bi bi-phone-vibrate me-1"></i> SINPE Móvil
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-6">
+                            <div class="card-premium border-0 shadow-sm h-100 rounded-4 p-4">
+                                <h5 class="card-title text-white fw-bold mb-3">
+                                    <i class="bi bi-receipt text-info me-2"></i>Comprobante y notas
+                                </h5>
+
+                                <label class="form-label text-light fw-medium" id="lblComprobante">
+                                    Comprobante de pago <span class="text-light opacity-50 fw-normal small" id="hintComprobante">(opcional con efectivo)</span>
+                                </label>
+                                <input type="file" name="comprobantePago" id="comprobantePago" class="form-control input-premium text-light mb-1" accept=".jpg,.jpeg,.png,.gif,.webp,.pdf" />
+                                <div class="form-text text-light opacity-50 small mb-4">
+                                    Tipos permitidos: JPG, PNG, WEBP o PDF. Máximo: 10 MB.
+                                </div>
+
+                                <label class="form-label text-light fw-medium">Notas <span class="text-light opacity-50 fw-normal small">(opcional)</span></label>
+                                <textarea name="notas" class="form-control input-premium text-light" rows="2" placeholder="Indicaciones de entrega, teléfono alternativo, etc."></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="text-end d-flex flex-wrap gap-3 justify-content-end align-items-center">
+                        <a href="/landing/catalogo" class="btn btn-outline-premium py-2 px-4">
+                            <i class="bi bi-arrow-left me-2"></i>Seguir comprando
+                        </a>
+                        <button type="submit" class="btn btn-premium py-2 px-5 shadow-sm fw-semibold fs-5">
+                            <i class="bi bi-check-circle me-2"></i>Confirmar compra
+                        </button>
+                    </div>
+                </form>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        (function () {
+            const tasaIva = 0.13;
+            const urlActualizar = '@Url.Action("ActualizarCarrito", "Landing")';
+
+            function reindexarFilas() {
+                $('#tablaCarrito tbody tr').each(function (idx) {
+                    $(this).attr('data-index', idx);
+                    $(this).find('input[name^="detalles["]').each(function () {
+                        const name = $(this).attr('name');
+                        if (!name) return;
+                        $(this).attr('name', name.replace(/detalles\[\d+\]/, 'detalles[' + idx + ']'));
+                    });
+                });
+            }
+
+            function actualizarSubtotales() {
+                let subtotal = 0;
+                $('#tablaCarrito tbody tr').each(function () {
+                    const $row = $(this);
+                    const cantidad = parseFloat(String($row.find('.cantidad').val()).replace(',', '.')) || 0;
+                    const precioInput = $row.find('input[name$=".PrecioUnitario"]').val();
+                    const precio = precioInput ? parseFloat(precioInput.replace(',', '.')) : 0;
+                    const linea = cantidad * precio;
+                    $row.find('td.subtotal').text('₡ ' + linea.toFixed(2));
+                    subtotal += linea;
+                });
+                const iva = Math.round(subtotal * tasaIva * 100) / 100;
+                const total = Math.round((subtotal + iva) * 100) / 100;
+                $('#filaSubtotal').text('₡ ' + subtotal.toFixed(2));
+                $('#filaIva').text('₡ ' + iva.toFixed(2));
+                $('#totalGeneral').text('₡ ' + total.toFixed(2));
+            }
+
+            function sincronizarCarrito() {
+                const items = [];
+                $('#tablaCarrito tbody tr').each(function () {
+                    const $row = $(this);
+                    const pid = $row.find('input[name$=".ProductoId"]').val();
+                    items.push({
+                        productoId: pid ? parseInt(pid, 10) : null,
+                        descripcionSnapshot: $row.find('input[name$=".DescripcionSnapshot"]').val() || '',
+                        cantidad: parseInt($row.find('.cantidad').val(), 10) || 1,
+                        precioUnitario: $row.find('input[name$=".PrecioUnitario"]').val() ? parseFloat($row.find('input[name$=".PrecioUnitario"]').val()) : 0
+                    });
+                });
+                $.ajax({
+                    url: urlActualizar,
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(items),
+                    dataType: 'json'
+                }).fail(function () { console.warn('No se pudo sincronizar el carrito en sesión.'); });
+            }
+
+            $(function () {
+                actualizarSubtotales();
+
+                $(document).on('input change', '.cantidad', function () {
+                    actualizarSubtotales();
+                    sincronizarCarrito();
+                });
+
+                $(document).on('click', '.eliminar-item', function () {
+                    $(this).closest('tr').remove();
+                    reindexarFilas();
+                    actualizarSubtotales();
+                    sincronizarCarrito();
+                    if ($('#tablaCarrito tbody tr').length === 0) {
+                        location.reload();
+                    }
+                });
+
+                function actualizarRequisitoComprobante() {
+                    const sinpe = $('#mpSINPE').is(':checked');
+                    const $f = $('#comprobantePago');
+                    const $hint = $('#hintComprobante');
+                    if (sinpe) {
+                        $f.prop('required', true);
+                        $hint.text('(obligatorio con SINPE Móvil)');
+                    } else {
+                        $f.prop('required', false);
+                        $hint.text('(opcional con efectivo)');
+                    }
+                }
+
+                $('input[name="metodoPago"]').on('change', actualizarRequisitoComprobante);
+                actualizarRequisitoComprobante();
+
+                $('#formCarrito').on('submit', function (e) {
+                    reindexarFilas();
+                    if ($('#tablaCarrito tbody tr').length === 0) {
+                        e.preventDefault();
+                        alert('El carrito está vacío');
+                        return;
+                    }
+                    const suc = $('#sucursalId').val();
+                    if (!suc || suc === '0') {
+                        e.preventDefault();
+                        alert('Debe seleccionar una sucursal.');
+                        return;
+                    }
+                    if ($('#mpSINPE').is(':checked')) {
+                        const fileInput = document.getElementById('comprobantePago');
+                        if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
+                            e.preventDefault();
+                            alert('Con SINPE Móvil debe adjuntar un comprobante (imagen o PDF).');
+                        }
+                    }
+                });
+            });
+        })();
+    </script>
+}

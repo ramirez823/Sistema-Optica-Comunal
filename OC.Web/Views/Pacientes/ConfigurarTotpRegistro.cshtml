@@ -1,0 +1,76 @@
+@model OC.Web.ViewModels.ValidarTotpViewModel
+@{
+    Layout = "_LayoutLanding";
+    ViewData["Title"] = "Configurar autenticador";
+}
+
+<section class="container py-5" style="max-width: 680px;">
+    <div class="text-center mb-5 animate-on-scroll">
+        <span style="display:inline-flex;align-items:center;justify-content:center;width:64px;height:64px;background:linear-gradient(135deg,var(--brand-primary),var(--brand-accent));border-radius:50%;font-size:28px;color:#fff;box-shadow:0 6px 24px rgba(14,165,233,0.3);margin-bottom:1.2rem;">
+            <i class="bi bi-shield-lock-fill"></i>
+        </span>
+        <h1 style="font-size:clamp(1.4rem,3vw,1.9rem);font-weight:700;color:#fff;margin-bottom:0.6rem;">
+            Configurar autenticador
+        </h1>
+        <p style="color:var(--text-muted);font-size:0.95rem;max-width:480px;margin:0 auto;line-height:1.6;">
+            Por la seguridad de tus datos, es obligatorio usar una
+            <strong style="color:var(--brand-accent);">app autenticadora</strong>
+            (Google Authenticator, Microsoft Authenticator, Authy, etc.).
+        </p>
+    </div>
+
+    <div class="card-premium p-4 p-md-5 animate-on-scroll" style="text-align:center;">
+        <h5 class="text-white fw-bold mb-3">Escaneá el código QR</h5>
+        <p style="color:var(--text-muted);font-size:0.88rem;margin-bottom:1.5rem;">
+            Usá Google Authenticator, Microsoft Authenticator o cualquier app compatible
+            para escanear el código. Luego ingresá el código de 6 dígitos para terminar el registro.
+        </p>
+
+        <div class="row align-items-start g-4">
+            <div class="col-12 col-md-5">
+                <img src="@ViewBag.QrUrl"
+                     alt="QR TOTP"
+                     class="img-fluid rounded p-3"
+                     style="background:#fff;max-width:200px;box-shadow:0 4px 20px rgba(0,0,0,0.3);" />
+            </div>
+            <div class="col-12 col-md-7 text-start">
+                <div style="background:rgba(6,11,20,0.5);border:1px solid var(--glass-border);border-radius:12px;padding:1rem;margin-bottom:1rem;">
+                    <span style="font-size:0.78rem;color:var(--brand-accent);text-transform:uppercase;letter-spacing:1px;">Cuenta</span>
+                    <p style="color:#fff;font-size:0.9rem;font-weight:500;margin:4px 0 0;">@ViewBag.Correo</p>
+                </div>
+                <div style="background:rgba(6,11,20,0.5);border:1px solid var(--glass-border);border-radius:12px;padding:1rem;">
+                    <span style="font-size:0.78rem;color:var(--brand-accent);text-transform:uppercase;letter-spacing:1px;">Llave manual</span>
+                    <p style="color:#fff;font-size:0.85rem;font-family:monospace;margin:6px 0 0;letter-spacing:2px;">@ViewBag.ManualKey</p>
+                </div>
+            </div>
+        </div>
+
+        <hr style="border-color:var(--glass-border);margin:1.8rem 0;" />
+
+        <form asp-action="ConfigurarTotpRegistro" method="post">
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+            <div class="mb-3 text-start">
+                <label asp-for="Codigo" class="form-label" style="color:var(--text-main);font-weight:500;">Código de verificación</label>
+                <input asp-for="Codigo"
+                       class="form-control input-premium text-center"
+                       style="font-size:1.5rem;letter-spacing:6px;max-width:260px;margin:0 auto;"
+                       maxlength="6"
+                       placeholder="123456"
+                       autocomplete="one-time-code" />
+                <span asp-validation-for="Codigo" class="text-danger"></span>
+            </div>
+
+            <button type="submit" class="btn btn-premium w-100" style="max-width:280px;">
+                <i class="bi bi-check-circle-fill me-2"></i>Finalizar registro
+            </button>
+            <a asp-action="Registro" class="btn btn-outline-premium mt-2" style="max-width:280px;">
+                <i class="bi bi-arrow-left me-2"></i>Volver
+            </a>
+        </form>
+    </div>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

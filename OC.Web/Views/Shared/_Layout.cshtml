@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] — Óptica Comunal</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="icon" type="image/png" href="/uploads/productos/logo.png" />
+    <style>
+        /* ============================================
+                   Mejoras visuales globales
+                   ============================================ */
+
+        /* Animación de entrada para el contenido principal */
+        .page-fade {
+            animation: fadeSlideUp 0.5s ease-out forwards;
+        }
+
+        @@keyframes fadeSlideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Efecto de brillo en el logo y avatar */
+        .brand-icon, .topbar-avatar {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+        }
+
+            .brand-icon:hover, .topbar-avatar:hover {
+                transform: scale(1.05);
+                box-shadow: 0 0 12px rgba(59,130,246,0.6);
+            }
+
+        /* Animación del icono del ojo (latido + brillo) */
+        .bi-eye-fill {
+            transition: transform 0.2s ease, text-shadow 0.2s ease;
+            display: inline-block;
+        }
+
+        .brand-icon:hover .bi-eye-fill {
+            transform: scale(1.15);
+            text-shadow: 0 0 8px rgba(255,255,255,0.8);
+            animation: pulse 0.6s ease-in-out;
+        }
+
+        @@keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.2);
+            }
+
+            100% {
+                transform: scale(1.15);
+            }
+        }
+
+        /* Topbar con efecto de desenfoque dinámico (scroll) */
+        #topbar, .no-sidebar-header {
+            transition: backdrop-filter 0.2s ease, background 0.2s ease;
+        }
+
+        /* Botón de logout con efecto */
+        .logout-btn {
+            transition: all 0.2s ease;
+        }
+
+            .logout-btn:hover {
+                transform: translateX(2px);
+            }
+
+        /* Contenedor para el canvas 3D (solo en home) */
+        #home-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.8s ease;
+        }
+
+        .dashboard-home {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Mejoras en el contenido */
+        .content-body {
+            animation: fadeSlideUp 0.4s ease-out;
+        }
+
+        /* Ajustes responsivos */
+        @@media (max-width: 768px) {
+            .no-sidebar-header {
+                padding: 0 16px !important;
+            }
+        }
+    </style>
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+<body>
+
+    @{
+        var controller = ViewContext.RouteData.Values["controller"]?.ToString();
+        var action = ViewContext.RouteData.Values["action"]?.ToString();
+        var isNoSidebar = controller == "Home" && action == "Index";
+        var userName = User.Identity?.Name ?? "Usuario";
+        var userRole = string.Join(", ", User.FindAll(System.Security.Claims.ClaimTypes.Role).Select(c => c.Value));
+
+        // Iniciales seguras
+        var initials = string.Concat((userName ?? "U")
+        .Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)
+        .Take(2)
+        .Select(w => w.Length > 0 ? w[0].ToString().ToUpper() : ""));
+    }
+
+    @if (isNoSidebar)
+    {
+        @* ── Sin sidebar: dashboard home (con fondo 3D) ─────────────────── *@
+        <div id="home-canvas"></div>
+
+        <div style="min-height:100vh; background:var(--color-bg); position:relative; z-index:1;">
+            <header class="no-sidebar-header" style="height:56px; background:var(--color-surface);
+                               border-bottom:1px solid var(--color-border);
+                               display:flex; align-items:center; justify-content:space-between;
+                               padding:0 32px; box-shadow:var(--shadow-sm);">
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <div class="brand-icon" style="width:32px;height:32px;
+                                        background:linear-gradient(135deg,var(--color-brand),var(--color-accent));
+                                        border-radius:8px;display:flex;align-items:center;justify-content:center;
+                                        color:#fff;font-size:15px;">
+                        <i class="bi bi-eye-fill"></i>
+                    </div>
+                    <span style="font-weight:700;font-size:15px;color:var(--color-text);">Óptica Comunal</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:16px;">
+                    <div style="display:flex;align-items:center;gap:8px;">
+                        <div class="topbar-avatar" style="width:28px;height:28px;
+                                            background:linear-gradient(135deg,var(--color-brand),var(--color-accent));
+                                            border-radius:50%;display:flex;align-items:center;justify-content:center;
+                                            font-size:11px;font-weight:700;color:#fff;">
+                            @initials
+                        </div>
+                        <span style="font-size:13px;font-weight:500;color:var(--color-text);">@userName</span>
+                        <span style="font-size:11px;color:var(--color-text-muted);">· @userRole</span>
+                    </div>
+                    <form asp-controller="Account" asp-action="Logout" method="post" style="display:inline;">
+                        <button type="submit" class="logout-btn" style="background:none; border:none; color:var(--color-text-muted); display:flex; align-items:center; gap:5px; transition:var(--transition);"
+                                onmouseover="this.style.color='var(--color-danger)'"
+                                onmouseout="this.style.color='var(--color-text-muted)'">
+                            <i class="bi bi-box-arrow-right"></i> Salir
+                        </button>
+                    </form>
+                </div>
+            </header>
+            <main id="page-content" class="page-fade">
+                @RenderBody()
+            </main>
+        </div>
+    }
+    else
+    {
+        @* ── Con sidebar: todas las demás vistas ───────────────────────── *@
+        <div class="wrapper">
+            <nav id="sidebar">
+                <div class="sidebar-header">
+                    <a href="/" class="brand" style="text-decoration:none;">
+                        <div class="brand-icon">
+                            <i class="bi bi-eye-fill"></i>
+                        </div>
+                        <div class="brand-text">
+                            <strong>Óptica Comunal</strong>
+                            <small>Sistema de Gestión</small>
+                        </div>
+                    </a>
+                </div>
+
+                @await Component.InvokeAsync("Sidebar")
+
+                <div class="sidebar-footer">
+                    <span class="status-dot"></span>
+                    Sistema en línea
+                </div>
+            </nav>
+
+            <div id="content">
+                <header id="topbar">
+                    <div class="topbar-left">
+                        <div class="topbar-breadcrumb">
+                            <i class="bi bi-grid-1x2 me-2 text-muted"></i>
+                            <strong>@(ViewData["Title"] ?? "Dashboard")</strong>
+                        </div>
+                    </div>
+                    <div class="topbar-right">
+                        @await Component.InvokeAsync("Notificaciones")
+                        <div class="dropdown">
+                            <a class="topbar-user dropdown-toggle" data-bs-toggle="dropdown" style="text-decoration:none;">
+                                <div class="topbar-avatar">@initials</div>
+                                <div class="topbar-user-info">
+                                    <div class="user-name">@userName</div>
+                                    <div class="user-role">@userRole</div>
+                                </div>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end shadow border-0" style="border-radius:10px;font-size:13px;min-width:180px;">
+                                <li>
+                                    <a class="dropdown-item text-danger" asp-controller="Account" asp-action="Logout">
+                                        <i class="bi bi-box-arrow-right me-2"></i>Cerrar sesión
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </header>
+
+                <div id="page-content" class="content-body page-fade">
+                    @if (TempData["Success"] != null)
+                    {
+                        <div class="alert alert-success alert-dismissible fade show animate-fade-up mb-3">
+                            <i class="bi bi-check-circle me-2"></i>@TempData["Success"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    }
+                    @if (TempData["Info"] != null)
+                    {
+                        <div class="alert alert-info alert-dismissible fade show animate-fade-up mb-3">
+                            <i class="bi bi-info-circle me-2"></i>@TempData["Info"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    }
+                    @if (TempData["Error"] != null)
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show animate-fade-up mb-3">
+                            <i class="bi bi-exclamation-circle me-2"></i>@TempData["Error"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    }
+                    @RenderBody()
+                </div>
+            </div>
+        </div>
+    }
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.2/anime.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+
+    @* Script para el fondo 3D solo en home *@
+    @if (isNoSidebar)
+    {
+        <script type="importmap">
+            {
+                "imports": {
+                    "three": "https://unpkg.com/three@0.128.0/build/three.module.js"
+                }
+            }
+        </script>
+        <script type="module">
+            import * as THREE from 'three';
+
+            const container = document.getElementById('home-canvas');
+            if (container) {
+                const scene = new THREE.Scene();
+                const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+                const renderer = new THREE.WebGLRenderer({ alpha: true });
+                renderer.setSize(window.innerWidth, window.innerHeight);
+                renderer.setClearColor(0x000000, 0);
+                container.appendChild(renderer.domElement);
+
+                // Partículas suaves
+                const particlesGeometry = new THREE.BufferGeometry();
+                const particlesCount = 1200;
+                const posArray = new Float32Array(particlesCount * 3);
+                for (let i = 0; i < particlesCount * 3; i += 3) {
+                    posArray[i] = (Math.random() - 0.5) * 40;
+                    posArray[i+1] = (Math.random() - 0.5) * 25;
+                    posArray[i+2] = (Math.random() - 0.5) * 20 - 5;
+                }
+                particlesGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+
+                const particlesMaterial = new THREE.PointsMaterial({
+                    size: 0.06,
+                    color: 0x3b82f6,
+                    transparent: true,
+                    opacity: 0.4,
+                    blending: THREE.AdditiveBlending
+                });
+                const particlesMesh = new THREE.Points(particlesGeometry, particlesMaterial);
+                scene.add(particlesMesh);
+
+                camera.position.z = 15;
+
+                let mouseX = 0, mouseY = 0;
+                document.addEventListener('mousemove', (event) => {
+                    mouseX = (event.clientX / window.innerWidth) * 2 - 1;
+                    mouseY = (event.clientY / window.innerHeight) * 2 - 1;
+                });
+
+                function animate() {
+                    requestAnimationFrame(animate);
+                    particlesMesh.rotation.y += 0.0005;
+                    particlesMesh.rotation.x += 0.0003;
+                    particlesMesh.rotation.x += (mouseY * 0.3 - particlesMesh.rotation.x) * 0.05;
+                    particlesMesh.rotation.y += (mouseX * 0.3 - particlesMesh.rotation.y) * 0.05;
+                    renderer.render(scene, camera);
+                }
+                animate();
+
+                window.addEventListener('resize', () => {
+                    camera.aspect = window.innerWidth / window.innerHeight;
+                    camera.updateProjectionMatrix();
+                    renderer.setSize(window.innerWidth, window.innerHeight);
+                });
+
+                // Suavizar aparición del canvas
+                setTimeout(() => container.style.opacity = '1', 100);
+            }
+        </script>
+    }
+
+    @* Efecto de desenfoque en topbar al hacer scroll *@
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const topbar = document.getElementById('topbar');
+            if (topbar) {
+                window.addEventListener('scroll', () => {
+                    const blur = Math.min(8, window.scrollY / 80);
+                    topbar.style.backdropFilter = `blur(${blur}px)`;
+                });
+            }
+            const noSidebarHeader = document.querySelector('.no-sidebar-header');
+            if (noSidebarHeader) {
+                window.addEventListener('scroll', () => {
+                    const blur = Math.min(8, window.scrollY / 80);
+                    noSidebarHeader.style.backdropFilter = `blur(${blur}px)`;
+                });
+            }
+        });
+    </script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

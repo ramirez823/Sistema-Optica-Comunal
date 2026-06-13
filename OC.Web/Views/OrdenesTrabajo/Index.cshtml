@@ -1,0 +1,198 @@
+@using OC.Core.Common
+@model PagedResult<OC.Core.Domain.Entities.OrdenTrabajo>
+@{
+    ViewData["Title"] = "Órdenes de Trabajo";
+
+    var pagination = new PaginationInfo
+    {
+        CurrentPage = Model.PageIndex,
+        TotalPages = Model.TotalPages,
+        GetPageUrl = (page) => Url.Action("Index", new
+        {
+            page,
+            search = ViewBag.Search,
+            estado = ViewBag.Estado,
+            sort = ViewBag.Sort
+        })
+    };
+}
+
+<div class="container-fluid px-4">
+    <div class="page-header animate-fade-up">
+        <div class="page-header-text">
+            <div class="page-header-icon"><i class="bi bi-eyeglasses"></i></div>
+            <div>
+                <h1 class="page-title">Órdenes de Trabajo</h1>
+                <p class="page-subtitle">
+                    <i class="bi bi-info-circle me-1"></i>
+                    @(Model.TotalCount == 0 ? "Sin órdenes registradas." : $"{Model.TotalCount} orden(es) de lentes.")
+                </p>
+            </div>
+        </div>
+        @if (User.IsInRole("Admin") || User.IsInRole("Recepcion") || User.IsInRole("Optometrista"))
+        {
+            <div class="page-actions">
+                <a asp-action="Create" class="btn btn-brand">
+                    <i class="bi bi-plus-circle me-1"></i> Nueva orden
+                </a>
+            </div>
+        }
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show animate-fade-up mb-3" role="alert">
+            <i class="bi bi-check-circle me-2"></i>@TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show animate-fade-up mb-3" role="alert">
+            <i class="bi bi-exclamation-circle me-2"></i>@TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="card-dashboard animate-fade-up delay-1 mb-3">
+        <div class="card-body filter-bar">
+            <form method="get" class="row g-2 align-items-end">
+                <div class="col-12 col-md-5 col-lg-4">
+                    <label class="form-label">Buscar</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-search"></i></span>
+                        <input type="text" name="search" class="form-control"
+                               value="@ViewBag.Search"
+                               placeholder="Paciente, # orden o estado..." />
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <label class="form-label">Estado</label>
+                    <select name="estado" class="form-select" onchange="this.form.submit()">
+                        <option value="">Todos los estados</option>
+                        <option value="Pendiente" selected="@(ViewBag.Estado == "Pendiente")">Pendiente</option>
+                        <option value="EnProceso" selected="@(ViewBag.Estado == "EnProceso")">En proceso</option>
+                        <option value="Lista" selected="@(ViewBag.Estado == "Lista")">Lista</option>
+                        <option value="Entregada" selected="@(ViewBag.Estado == "Entregada")">Entregada</option>
+                    </select>
+                </div>
+                <div class="col-6 col-md-2">
+                    <label class="form-label">Ordenar</label>
+                    <select name="sort" class="form-select" onchange="this.form.submit()">
+                        <option value="">Fecha (nuevas)</option>
+                        <option value="asc" selected="@(ViewBag.Sort == "asc")">Fecha (viejas)</option>
+                        <option value="patient" selected="@(ViewBag.Sort == "patient")">Paciente A-Z</option>
+                        <option value="patient_desc" selected="@(ViewBag.Sort == "patient_desc")">Paciente Z-A</option>
+                    </select>
+                </div>
+                @if (!string.IsNullOrWhiteSpace(ViewBag.Search) || !string.IsNullOrWhiteSpace(ViewBag.Estado))
+                {
+                    <div class="col-6 col-md-2">
+                        <a asp-action="Index" class="btn btn-outline-secondary w-100" title="Limpiar filtros">
+                            <i class="bi bi-x-circle me-1"></i> Limpiar
+                        </a>
+                    </div>
+                }
+            </form>
+        </div>
+    </div>
+
+    <div class="card-dashboard animate-fade-up delay-2">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width:60px">#</th>
+                            <th>Paciente</th>
+                            <th>Sucursal</th>
+                            <th class="text-center" style="width:140px">Estado</th>
+                            <th>Referencia</th>
+                            <th>Fecha creación</th>
+                            <th class="text-center" style="width:120px">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var o in Model.Items)
+                        {
+                            <tr>
+                                <td class="text-muted">@o.Id</td>
+                                <td>@(o.Paciente?.NombreCompleto ?? "—")</td>
+                                <td>@(o.Sucursal?.Nombre ?? "—")</td>
+                                <td class="text-center">
+                                    @switch (o.Estado)
+                                    {
+                                        case OC.Core.Domain.Entities.EstadoOrdenTrabajo.Lista:
+                                            <span class="status-badge status-badge-active">
+                                                <i class="bi bi-check-circle-fill"></i> Lista
+                                            </span>
+                                            break;
+                                        case OC.Core.Domain.Entities.EstadoOrdenTrabajo.Entregada:
+                                            <span class="status-badge status-badge-inactive">
+                                                <i class="bi bi-bag-check"></i> Entregada
+                                            </span>
+                                            break;
+                                        case OC.Core.Domain.Entities.EstadoOrdenTrabajo.EnProceso:
+                                            <span class="status-badge" style="background:rgba(6,182,212,.12);color:#155e75;">
+                                                <i class="bi bi-arrow-repeat"></i> En proceso
+                                            </span>
+                                            break;
+                                        default:
+                                            <span class="status-badge" style="background:rgba(245,158,11,.12);color:#92400e;">
+                                                <i class="bi bi-clock"></i> Pendiente
+                                            </span>
+                                            break;
+                                    }
+                                </td>
+                                <td>@(o.Referencia ?? "—")</td>
+                                <td>@o.FechaCreacion.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td class="text-center">
+                                    @if (User.IsInRole("TecnicoOcular") &&
+                                         (o.Estado == OC.Core.Domain.Entities.EstadoOrdenTrabajo.Pendiente ||
+                                          o.Estado == OC.Core.Domain.Entities.EstadoOrdenTrabajo.EnProceso))
+                                    {
+                                        <a asp-action="Edit" asp-route-id="@o.Id"
+                                           class="btn-action btn-action-primary" title="Cambiar estado">
+                                            <i class="bi bi-arrow-right-circle"></i>
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <a asp-action="Edit" asp-route-id="@o.Id"
+                                           class="btn-action btn-action-info" title="Ver">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            @if (!Model.Items.Any())
+            {
+                <div class="empty-state">
+                    <div class="empty-state-icon"><i class="bi bi-eyeglasses"></i></div>
+                    <h5 class="empty-state-title">
+                        @(string.IsNullOrWhiteSpace(ViewBag.Search)
+                            ? "No hay órdenes de trabajo registradas"
+                            : "No se encontraron órdenes para tu búsqueda")
+                    </h5>
+                    <p class="empty-state-text">
+                        @if (string.IsNullOrWhiteSpace(ViewBag.Search))
+                        {
+                            <span>Las órdenes se generan automáticamente al facturar lentes a un paciente.</span>
+                        }
+                        else
+                        {
+                            <span>Intenta ajustar los filtros o limpiar la búsqueda.</span>
+                        }
+                    </p>
+                </div>
+            }
+        </div>
+    </div>
+
+    @await Html.PartialAsync("_Pagination", pagination)
+</div>

@@ -1,0 +1,29 @@
+@model OC.Web.ViewModels.RecuperarContrasenaTotpViewModel
+@{
+    ViewData["Title"] = "Recuperar contraseña";
+}
+
+<div class="card-dashboard">
+    <h4>Recuperar contraseña con TOTP</h4>
+    <p class="text-muted">Ingrese su correo y cédula. Si los datos son correctos, validará un código de su aplicación autenticadora para restablecer la contraseña.</p>
+
+    <form asp-action="RecuperarContrasena" method="post">
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+        <div class="mb-3">
+            <label asp-for="Correo" class="form-label"></label>
+            <input asp-for="Correo" class="form-control" autocomplete="email" />
+            <span asp-validation-for="Correo" class="text-danger"></span>
+        </div>
+        <div class="mb-3">
+            <label asp-for="Cedula" class="form-label"></label>
+            <input asp-for="Cedula" class="form-control cedula-format" placeholder="Ej: 1-2345-6789" maxlength="11" inputmode="numeric" title="Formato: X-XXXX-XXXX" autocomplete="off" />
+            <span asp-validation-for="Cedula" class="text-danger"></span>
+        </div>
+        <button type="submit" class="btn btn-brand">Continuar con TOTP</button>
+        <a asp-action="Login" class="btn btn-secondary">Volver al inicio de sesión</a>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

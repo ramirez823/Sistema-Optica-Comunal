@@ -1,0 +1,205 @@
+@model OC.Web.ViewModels.PedidoCreateViewModel
+@{
+    ViewData["Title"] ="Generar Pedido";
+}
+
+@section Styles {
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.1.0-rc.0/css/select2.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card-dashboard animate-on-scroll" data-delay="0">
+                <h4 class="mb-4"><i class="bi bi-truck me-2"></i> Generar Pedido</h4>
+
+                <form asp-action="Create" method="post" id="pedidoForm">
+                    @Html.AntiForgeryToken()
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="ProveedorId" class="form-label fw-semibold">Proveedor *</label>
+                            <select asp-for="ProveedorId" asp-items="Model.Proveedores" class="form-select prod-select">
+                                <option value="">Seleccione un proveedor</option>
+                            </select>
+                            <span asp-validation-for="ProveedorId" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="FechaEntregaEstimada" class="form-label fw-semibold">Fecha entrega estimada *</label>
+                            <input asp-for="FechaEntregaEstimada" type="date" class="form-control" />
+                            <span asp-validation-for="FechaEntregaEstimada" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Descripcion" class="form-label fw-semibold">Descripción</label>
+                        <textarea asp-for="Descripcion" class="form-control" rows="3" placeholder="Observaciones adicionales..."></textarea>
+                        <span asp-validation-for="Descripcion" class="text-danger"></span>
+                    </div>
+
+                    <h5 class="mt-4 mb-3">Productos del pedido</h5>
+                    <div id="productos-container">
+                        @for (int i = 0; i < Model.Detalles.Count; i++)
+                        {
+                            <div class="row mb-2 producto-item align-items-center g-2">
+                                <div class="col-md-5">
+                                    <select name="Detalles[@i].ProductoId" class="form-select prod-select">
+                                        <option value="">Seleccione un producto</option>
+                                        @foreach (var prod in Model.Productos)
+                                        {
+                                            if (prod.Value == Model.Detalles[i].ProductoId.ToString())
+                                            {
+                                                <option value="@prod.Value" selected>@prod.Text</option>
+                                            }
+                                            else
+                                            {
+                                                <option value="@prod.Value">@prod.Text</option>
+                                            }
+                                        }
+                                    </select>
+                                </div>
+                                <div class="col-md-2 text-center prod-vista-mini">
+                                    <img src="" alt="" class="rounded border prod-thumb-img" style="display:none;max-height:52px;max-width:52px;object-fit:contain" />
+                                    <span class="text-muted small prod-thumb-ph">—</span>
+                                </div>
+                                <div class="col-md-2">
+                                    <input type="number" name="Detalles[@i].Cantidad" class="form-control cantidad-input" placeholder="Cantidad" value="@Model.Detalles[i].Cantidad" min="1" step="1" />
+                                </div>
+                                <div class="col-md-3">
+                                    <button type="button" class="btn btn-outline-danger btn-sm remove-product w-100" title="Quitar línea">
+                                        <i class="bi bi-x-lg me-1"></i> Quitar
+                                    </button>
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                    <div class="btn-toolbar mb-2 align-items-center flex-wrap gap-2" role="toolbar" aria-label="Líneas del pedido">
+                        <div class="btn-group btn-group-sm" role="group">
+                            <button type="button" id="add-product" class="btn btn-outline-primary">
+                                <i class="bi bi-plus-lg me-1"></i> Agregar producto
+                            </button>
+                        </div>
+                        <span class="text-muted small d-none d-md-inline mb-0">Añada una fila por cada artículo del pedido.</span>
+                    </div>
+
+                    <div class="form-footer-actions">
+                        <div class="btn-toolbar mb-0" role="toolbar" aria-label="Enviar pedido">
+                            <div class="btn-group" role="group">
+                                <button type="submit" class="btn btn-brand">
+                                    <i class="bi bi-send me-2"></i> Generar pedido
+                                </button>
+                                <a asp-action="Index" class="btn btn-outline-secondary">
+                                    <i class="bi bi-x-lg me-2"></i> Cancelar
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.1.0-rc.0/js/select2.min.js"></script>
+    <script>
+        window.productoImagenes = @Html.Raw(ViewBag.ProductoImagenesJson ??"{}");
+        var productIndex = @Model.Detalles.Count;
+
+        // ── Select2: init on a given select element ──
+        function initSelect2(el) {
+            var $el = $(el);
+            var placeholder = 'Seleccione un producto';
+            // Detect the select by name or id to set the right placeholder
+            var name = (el.name || el.id || '').toLowerCase();
+            if (name.indexOf('proveedorid') !== -1) {
+                placeholder = 'Seleccione un proveedor';
+            }
+            $el.select2({
+                placeholder: placeholder,
+                allowClear: true,
+                width: '100%',
+                theme: 'bootstrap-5',
+                language: { noResults: function () { return "No se encontraron resultados"; } }
+            });
+        }
+
+        function refrescarMiniatura($row) {
+            var id = $row.find('.prod-select').val();
+            var url = (window.productoImagenes && id && window.productoImagenes[id]) ? window.productoImagenes[id] : '';
+            var $img = $row.find('.prod-thumb-img');
+            var $ph = $row.find('.prod-thumb-ph');
+            if (url) {
+                $img.attr('src', url).show();
+                $ph.hide();
+            } else {
+                $img.hide().attr('src', '');
+                $ph.show();
+            }
+        }
+
+        // ── Strict integer input for Cantidad ──
+        function blockNonDigits(e) {
+            if (e.key === 'e' || e.key === 'E' || e.key === '+' || e.key === '-' || e.key === '.')
+                return false;
+        }
+
+
+        console.log("Detalles:", @Model.Detalles.Count);
+        console.log("Selects:", $('.prod-select').length);
+
+
+        // ── Init Select2 on all existing product selects (Scripts section renders at end of body — DOM is ready) ──
+        $('.prod-select').each(function () { initSelect2(this); });
+
+        // ── Integer guard on existing cantidad inputs ──
+        $('.cantidad-input').on('keydown', blockNonDigits);
+
+        // ── Thumbnails for existing rows ──
+        $('.producto-item').each(function () { refrescarMiniatura($(this)); });
+
+        // ── Dynamic row: add product ──
+        $('#add-product').click(function () {
+            var newRow = `
+                <div class="row mb-2 producto-item align-items-center g-2">
+                    <div class="col-md-5">
+                        <select name="Detalles[${productIndex}].ProductoId" class="form-select prod-select">
+                            <option value="">Seleccione un producto</option>
+                            @foreach (var prod in Model.Productos)
+                            {
+                                <option value="@prod.Value">@prod.Text</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-2 text-center prod-vista-mini">
+                        <img src="" alt="" class="rounded border prod-thumb-img" style="display:none;max-height:52px;max-width:52px;object-fit:contain" />
+                        <span class="text-muted small prod-thumb-ph">—</span>
+                    </div>
+                    <div class="col-md-2">
+                        <input type="number" name="Detalles[${productIndex}].Cantidad" class="form-control cantidad-input"
+                               placeholder="Cantidad" min="1" step="1" />
+                    </div>
+                    <div class="col-md-3">
+                        <button type="button" class="btn btn-outline-danger btn-sm remove-product w-100" title="Quitar línea">
+                            <i class="bi bi-x-lg me-1"></i> Quitar
+                        </button>
+                    </div>
+                </div>`;
+            $('#productos-container').append(newRow);
+            initSelect2($('#productos-container .producto-item:last-child .prod-select')[0]);
+            $('#productos-container .producto-item:last-child .cantidad-input').on('keydown', blockNonDigits);
+            productIndex++;
+        });
+
+        $(document).on('change', '.producto-item .prod-select', function () {
+            refrescarMiniatura($(this).closest('.producto-item'));
+        });
+
+        $(document).on('click', '.remove-product', function () {
+            $(this).closest('.producto-item').remove();
+        });
+    </script>
+}

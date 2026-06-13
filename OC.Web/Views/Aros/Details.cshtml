@@ -1,0 +1,77 @@
+@model OC.Core.Domain.Entities.Aro
+@{
+    ViewData["Title"] = $"Aro {Model.Nombre}";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card-dashboard animate-on-scroll" data-delay="0">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4><i class="bi bi-eyeglasses me-2"></i> Detalle del Aro</h4>
+                    <span class="badge @(Model.Activo ?"bg-success" :"bg-secondary")">
+                        @(Model.Activo ?"Activo" :"Inactivo")
+                    </span>
+                </div>
+
+                @if (!string.IsNullOrEmpty(Model.RutaImagen))
+                {
+                    <div class="mb-4 text-center text-md-start">
+                        <img src="@Model.RutaImagen" alt="@Model.Nombre" class="rounded border shadow-sm"
+                             style="max-height:200px;max-width:100%;object-fit:contain" />
+                    </div>
+                }
+
+                <dl class="row">
+                    <dt class="col-sm-3">Nombre</dt>
+                    <dd class="col-sm-9">@Model.Nombre</dd>
+
+                    <dt class="col-sm-3">SKU</dt>
+                    <dd class="col-sm-9">@Model.SKU</dd>
+
+                    <dt class="col-sm-3">Precio</dt>
+                    <dd class="col-sm-9">₡@Model.Precio.ToString("N2")</dd>
+
+                    <dt class="col-sm-3">Stock disponible</dt>
+                    <dd class="col-sm-9 @(Model.Stock < 6 ?"text-danger fw-bold" :"")">@Model.Stock</dd>
+
+                    <dt class="col-sm-3">Estado</dt>
+                    <dd class="col-sm-9">
+                        @(Model.Activo ?"Activo" :"Inactivo")
+                    </dd>
+                </dl>
+
+                @if (Model.Stock < 6)
+                {
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle me-2"></i> Este aro tiene bajo stock (≤5 unidades).
+                    </div>
+                }
+
+                <div class="form-footer-actions justify-content-between align-items-center">
+                    <a asp-controller="Inventory" asp-action="Index" asp-route-seccion="aros" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left me-1"></i> Volver al inventario
+                    </a>
+                    <div class="btn-group" role="group">
+                        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-brand">
+                            <i class="bi bi-pencil me-1"></i> Editar
+                        </a>
+                        <form asp-action="Delete" asp-route-id="@Model.Id" method="post" class="m-0"
+                              onsubmit="return confirm('¿Desactivar este aro?');">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-outline-danger">
+                                <i class="bi bi-trash me-1"></i> Desactivar
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        anime({ targets: '.animate-on-scroll', opacity: [0,1], translateY: [15,0], duration: 500, easing: 'easeOutQuad' });
+    </script>
+}

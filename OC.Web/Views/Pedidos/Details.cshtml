@@ -1,0 +1,131 @@
+@model OC.Core.Domain.Entities.Pedido
+@using OC.Core.Domain.Entities
+@{
+    ViewData["Title"] = $"Pedido #{Model.Id}";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card-dashboard animate-on-scroll" data-delay="0">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4><i class="bi bi-receipt me-2"></i> Detalle del Pedido</h4>
+                    <span class="badge @(Model.Estado == EstadoPedido.Pendiente ?"bg-warning text-dark" :
+                                                                    Model.Estado == EstadoPedido.Enviado ?"bg-info" :
+                                                                    Model.Estado == EstadoPedido.Recibido ?"bg-success" :"bg-secondary")">
+                        @Model.Estado
+                    </span>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <dl class="row">
+                            <dt class="col-sm-4">Proveedor</dt>
+                            <dd class="col-sm-8">@Model.Proveedor?.Nombre</dd>
+
+                            <dt class="col-sm-4">Fecha pedido</dt>
+                            <dd class="col-sm-8">@Model.FechaPedido.ToString("dd/MM/yyyy HH:mm")</dd>
+
+                            <dt class="col-sm-4">Entrega estimada</dt>
+                            <dd class="col-sm-8">@Model.FechaEntregaEstimada.ToString("dd/MM/yyyy")</dd>
+
+                            <dt class="col-sm-4">Entrega real</dt>
+                            <dd class="col-sm-8">@(Model.FechaEntregaReal?.ToString("dd/MM/yyyy") ??"-")</dd>
+                        </dl>
+                    </div>
+                    <div class="col-md-6">
+                        <dl class="row">
+                            <dt class="col-sm-4">Indicador</dt>
+                            <dd class="col-sm-8">
+                                @if (Model.Indicador == IndicadorEntrega.A_Tiempo)
+                                {
+                                    <span class="badge bg-success">A Tiempo</span>
+                                }
+                                else if (Model.Indicador == IndicadorEntrega.Retrasado)
+                                {
+                                    <span class="badge bg-danger">Retrasado</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">Pendiente</span>
+                                }
+                            </dd>
+
+                            <dt class="col-sm-4">Descripción</dt>
+                            <dd class="col-sm-8">@Model.Descripcion</dd>
+                        </dl>
+                    </div>
+                </div>
+
+                <h5 class="mt-4">Productos del Pedido</h5>
+                @if (Model.Detalles != null && Model.Detalles.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th style="width:72px">Imagen</th>
+                                    <th>Producto</th>
+                                    <th>SKU</th>
+                                    <th>Cantidad</th>
+                                    <th>Costo Unitario</th>
+                                    <th>Subtotal</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var detalle in Model.Detalles)
+                                {
+                                    <tr>
+                                        <td class="text-center">
+                                            @if (!string.IsNullOrEmpty(detalle.Producto?.RutaImagen))
+                                            {
+                                                <img src="@detalle.Producto.RutaImagen" alt="" class="rounded border" style="height:48px;width:48px;object-fit:contain" />
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted small">—</span>
+                                            }
+                                        </td>
+                                        <td>@detalle.Producto?.Nombre</td>
+                                        <td>@detalle.Producto?.SKU</td>
+                                        <td>@detalle.Cantidad</td>
+                                        <td>@detalle.CostoUnitario.ToString("N2")</td>
+                                        <td>@((detalle.Cantidad * detalle.CostoUnitario).ToString("N2"))</td>
+                                    </tr>
+                                }
+                            </tbody>
+                            <tfoot class="table-light">
+                                <tr>
+                                    <th colspan="5" class="text-end">Total</th>
+                                    <th>@Model.Detalles.Sum(d => d.Cantidad * d.CostoUnitario).ToString("N2")</th>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <p>No hay productos asociados a este pedido.</p>
+                }
+
+                <div class="form-footer-actions">
+                    <div class="btn-toolbar flex-wrap gap-2 mb-0" role="toolbar" aria-label="Acciones del pedido">
+                        <div class="btn-group" role="group" aria-label="Navegación">
+                            <a asp-action="Index" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left me-1"></i> Volver al listado
+                            </a>
+                            <a asp-action="Historial" class="btn btn-outline-secondary">
+                                <i class="bi bi-clock-history me-1"></i> Historial
+                            </a>
+                        </div>
+                        <div class="btn-group" role="group" aria-label="Edición">
+                            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-brand">
+                                <i class="bi bi-pencil me-1"></i> Editar
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,37 @@
+<div class="card-dashboard">
+    <h4>Solicitar Cita</h4>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <p class="text-muted">Para solicitar una cita, primero debe estar registrado como paciente. Si aún no se ha registrado, <a asp-controller="Pacientes" asp-action="Registro">haga clic aquí</a>.</p>
+
+    <form asp-action="Solicitar" method="post">
+        <div class="mb-3">
+            <label for="cedula" class="form-label">Cédula del Paciente</label>
+            <input name="cedula" id="cedula" type="text" class="form-control cedula-format" placeholder="Ej: 1-2345-6789" maxlength="11" inputmode="numeric" title="Formato: X-XXXX-XXXX" required />
+            <small class="form-text text-muted">Formato: X-XXXX-XXXX (ej: 1-2345-6789).</small>
+            @if (ViewData.ModelState[""]?.Errors?.Any() == true)
+            {
+                <span class="text-danger">@ViewData.ModelState[""].Errors.First().ErrorMessage</span>
+            }
+        </div>
+
+        <div class="mb-3">
+            <label for="motivo" class="form-label">Motivo de la Cita</label>
+            <textarea name="motivo" id="motivo" class="form-control" rows="4" placeholder="Describa el motivo de su consulta" maxlength="500"></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-brand">
+            <i class="bi bi-send"></i> Enviar Solicitud
+        </button>
+        <a asp-action="VerMisCitas" class="btn btn-outline-primary">
+            <i class="bi bi-calendar-event"></i> Ver Mis Citas
+        </a>
+    </form>
+</div>

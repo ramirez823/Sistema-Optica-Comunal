@@ -1,0 +1,34 @@
+@model OC.Web.ViewModels.ValidarTotpViewModel
+@{
+    Layout = "_AuthSimplePage";
+    ViewData["Title"] = "Configurar autenticador";
+}
+
+<div class="text-center mb-3">
+    <h4 class="mb-1">Configurar Microsoft Authenticator</h4>
+    <p class="text-muted small">Configure el autenticador <strong>una sola vez</strong>. Escanee el QR, ingrese el código de 6 dígitos y entrará al sistema. En los próximos ingresos solo usará el código de la app.</p>
+</div>
+
+<div class="text-center mb-3">
+    <img src="@ViewBag.QrUrl" alt="QR TOTP" class="img-fluid rounded p-2 bg-white" style="max-width:200px;" />
+</div>
+
+<div class="alert alert-info small mb-3">
+    <div><strong>Cuenta:</strong> @ViewBag.Correo</div>
+    <div class="mt-1"><strong>Llave manual:</strong> <code>@ViewBag.ManualKey</code></div>
+</div>
+
+<form asp-action="ConfigurarTotpStaff" method="post">
+    @Html.AntiForgeryToken()
+    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+    <div class="mb-3">
+        <label asp-for="Codigo" class="form-label"></label>
+        <input asp-for="Codigo" class="form-control text-center" maxlength="6" placeholder="123456" autocomplete="one-time-code" style="font-size:1.4rem;letter-spacing:4px;" />
+        <span asp-validation-for="Codigo" class="text-danger small"></span>
+    </div>
+    <button type="submit" class="btn btn-primary w-100">Confirmar y continuar</button>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

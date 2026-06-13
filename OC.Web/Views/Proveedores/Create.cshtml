@@ -1,0 +1,108 @@
+@model OC.Core.Domain.Entities.Proveedor
+@{
+    ViewData["Title"] = "Registrar proveedor";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card-dashboard animate-fade-up">
+                <div class="card-body p-4">
+                    <div class="form-header">
+                        <div class="form-header-icon">
+                            <i class="bi bi-building-add"></i>
+                        </div>
+                        <div class="form-header-text">
+                            <h4>Registrar proveedor</h4>
+                            <p>Ingrese los datos del proveedor. Marque como inactivo si ya no se le hacen pedidos.</p>
+                        </div>
+                    </div>
+
+                    <form asp-action="Create" method="post" id="proveedorForm" novalidate>
+                        @Html.AntiForgeryToken()
+
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label asp-for="Nombre" class="form-label">
+                                    Nombre <span class="text-danger">*</span>
+                                </label>
+                                <input asp-for="Nombre" class="form-control" maxlength="150" autofocus
+                                       placeholder="Ej. OptiLens Internacional S.A." />
+                                <span asp-validation-for="Nombre" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label asp-for="NumeroTelefonico" class="form-label">
+                                    Teléfono <span class="text-danger">*</span>
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text">+506</span>
+                                    <input asp-for="NumeroTelefonico" class="form-control" type="tel"
+                                           maxlength="9" placeholder="8888-1234" autocomplete="off" />
+                                </div>
+                                <div class="form-text">8 dígitos costarricenses, con o sin guión.</div>
+                                <span asp-validation-for="NumeroTelefonico" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label asp-for="Correo" class="form-label">
+                                    Correo <span class="text-danger">*</span>
+                                </label>
+                                <input asp-for="Correo" class="form-control" type="email" maxlength="255"
+                                       placeholder="contacto@empresa.cr" autocomplete="off" />
+                                <div class="form-text">Se usará para enviar pedidos y comprobantes.</div>
+                                <span asp-validation-for="Correo" class="text-danger small"></span>
+                            </div>
+                        </div>
+
+                        <div class="section-header">
+                            <i class="bi bi-person-plus"></i> Contacto adicional
+                            <small class="text-muted fw-normal ms-1">(opcional)</small>
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label asp-for="ContactoAdicionalNombre" class="form-label">Nombre</label>
+                                <input asp-for="ContactoAdicionalNombre" class="form-control" maxlength="100"
+                                       placeholder="Ej. Marcela Solís" />
+                                <span asp-validation-for="ContactoAdicionalNombre" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label asp-for="ContactoAdicionalTelefono" class="form-label">Teléfono</label>
+                                <input asp-for="ContactoAdicionalTelefono" class="form-control" type="tel"
+                                       maxlength="20" placeholder="8888-1234" autocomplete="off" />
+                                <div class="form-text">Acepta formatos con o sin código de país.</div>
+                                <span asp-validation-for="ContactoAdicionalTelefono" class="text-danger small"></span>
+                            </div>
+                        </div>
+
+                        <div class="form-footer-actions">
+                            <a asp-action="Index" class="btn btn-outline-secondary">
+                                <i class="bi bi-x-lg me-1"></i> Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-brand">
+                                <i class="bi bi-check-lg me-1"></i> Guardar proveedor
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        function formatearTelefonoCR(input) {
+            var digits = input.value.replace(/\D/g, '');
+            if (digits.length === 8) {
+                input.value = digits.slice(0, 4) + '-' + digits.slice(4);
+            }
+        }
+        document.querySelectorAll('input[type="tel"]').forEach(function (el) {
+            el.addEventListener('blur', function () { formatearTelefonoCR(this); });
+        });
+    </script>
+}

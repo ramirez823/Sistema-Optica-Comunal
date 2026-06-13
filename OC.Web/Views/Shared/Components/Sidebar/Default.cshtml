@@ -1,0 +1,219 @@
+﻿@using OC.Web.ViewComponents.Sidebar
+@model List<SidebarGroup>
+
+@{
+    var currentUrl = Context.Request.Path.ToString();
+}
+
+<style>
+    /* ============================================
+               Estilos para el sidebar con grupos
+               ============================================ */
+
+    .sidebar-group {
+        margin-bottom: 4px;
+    }
+
+    .sidebar-group-header {
+        padding: 11px 20px;
+        font-size: 13.5px;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        color: rgba(255,255,255,.72);
+        text-decoration: none;
+        margin: 1px 10px;
+        border-radius: var(--radius-sm);
+        transition: all 0.2s ease;
+        cursor: pointer;
+    }
+
+        .sidebar-group-header i {
+            font-size: 16px;
+            width: 20px;
+            text-align: center;
+            opacity: .8;
+            transition: var(--transition);
+        }
+
+        .sidebar-group-header:hover {
+            color: #fff;
+            background: rgba(255,255,255,.09);
+        }
+
+            .sidebar-group-header:hover i {
+                opacity: 1;
+                transform: translateX(2px);
+            }
+
+        .sidebar-group-header[aria-expanded="true"] i:first-child {
+            transform: rotate(90deg);
+        }
+
+    .sidebar-group-content {
+        padding-left: 12px;
+    }
+
+        .sidebar-group-content ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .sidebar-group-content li a {
+            padding: 9px 14px;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: rgba(255,255,255,.7);
+            text-decoration: none;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+
+            .sidebar-group-content li a i {
+                font-size: 14px;
+                width: 16px;
+                text-align: center;
+            }
+
+            .sidebar-group-content li a:hover {
+                background: rgba(255,255,255,.09);
+                color: #fff;
+                transform: translateX(3px);
+            }
+
+        .sidebar-group-content li.active a {
+            background: rgba(59,130,246,.3);
+            color: #fff;
+        }
+
+    /* Animaciones de entrada */
+    .sidebar-item {
+        opacity: 0;
+        transform: translateX(-15px);
+        transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+
+        .sidebar-item.visible {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+    /* Efecto de onda (ripple) */
+    .ripple-effect {
+        position: absolute;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.4);
+        transform: scale(0);
+        animation: ripple 0.6s ease-out;
+        pointer-events: none;
+    }
+
+    @@keyframes ripple {
+        to {
+            transform: scale(4);
+            opacity: 0;
+        }
+    }
+
+    /* Badge de notificación opcional */
+    .badge-notify {
+        background-color: #ef4444;
+        color: white;
+        border-radius: 10px;
+        padding: 0 6px;
+        font-size: 10px;
+        font-weight: bold;
+        margin-left: auto;
+        margin-right: 4px;
+        line-height: 16px;
+        height: 16px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+</style>
+
+<ul class="components">
+    @foreach (var group in Model)
+    {
+        var groupId = $"group-{group.Title.Replace(" ", "")}";
+        // Determinar si algún ítem del grupo está activo para abrir el acordeón por defecto
+        var anyActive = group.Items.Any(i => i.Url == "/" ? currentUrl == "/" : currentUrl.StartsWith(i.Url, StringComparison.OrdinalIgnoreCase));
+
+        <li class="sidebar-group" data-delay="@(Model.IndexOf(group) * 40)">
+            <a class="sidebar-group-header dropdown-toggle"
+               data-bs-toggle="collapse"
+               href="#@groupId"
+               role="button"
+               aria-expanded="@(anyActive ? "true" : "false")">
+                <i class="bi @group.Icon"></i>
+                @group.Title
+            </a>
+            <div class="collapse @(anyActive ? "show" : "")" id="@groupId">
+                <div class="sidebar-group-content">
+                    <ul>
+                        @foreach (var item in group.Items)
+                        {
+                            var isActive = item.Url == "/" ? currentUrl == "/" : currentUrl.StartsWith(item.Url, StringComparison.OrdinalIgnoreCase);
+                            <li class="@(isActive ? "active" : "")">
+                                <a href="@item.Url">
+                                    <i class="bi @item.Icon"></i>
+                                    @item.Title
+                                </a>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </li>
+    }
+</ul>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Animación de entrada con anime.js
+        if (typeof anime !== 'undefined') {
+            const groups = document.querySelectorAll('.sidebar-group');
+            if (groups.length) {
+                anime({
+                    targets: groups,
+                    opacity: [0, 1],
+                    translateX: [-15, 0],
+                    delay: function(el, i) {
+                        return parseInt(el.getAttribute('data-delay') || i * 40);
+                    },
+                    duration: 500,
+                    easing: 'easeOutCubic'
+                });
+            }
+        } else {
+            // Fallback si no hay anime.js
+            document.querySelectorAll('.sidebar-group').forEach(el => {
+                el.style.opacity = '1';
+                el.style.transform = 'translateX(0)';
+            });
+        }
+
+        // Efecto ripple en los enlaces del sidebar
+        const links = document.querySelectorAll('#sidebar ul li a');
+        links.forEach(link => {
+            link.addEventListener('click', function(e) {
+                const ripple = document.createElement('span');
+                const rect = this.getBoundingClientRect();
+                const size = Math.max(rect.width, rect.height);
+                ripple.className = 'ripple-effect';
+                ripple.style.width = ripple.style.height = size + 'px';
+                ripple.style.left = (e.clientX - rect.left - size/2) + 'px';
+                ripple.style.top = (e.clientY - rect.top - size/2) + 'px';
+                this.style.position = 'relative';
+                this.style.overflow = 'hidden';
+                this.appendChild(ripple);
+                setTimeout(() => ripple.remove(), 600);
+            });
+        });
+    });
+</script>

@@ -1,0 +1,142 @@
+@model OC.Web.ViewModels.CitaViewModel
+@{
+    ViewData["Title"] = "Agendar Cita";
+}
+
+<div class="card-dashboard">
+    <h4>Agendar Cita por Sede</h4>
+    <p class="text-muted small">Horario: Lunes a Domingo, 8:00 a 18:00. Cada cita dura 30 minutos (máx. 2 por hora por sede). Al elegir un slot, otro paciente no podrá reservarlo en la misma sede.</p>
+
+    <div class="alert alert-info mb-3">
+        <strong>Paciente:</strong> @Model.NombrePaciente<br />
+        <strong>Motivo:</strong> @(Model.MotivoSolicitud ?? "Sin motivo especificado")
+    </div>
+
+    <form asp-action="Agendar" method="post" id="formAgendar">
+        <input type="hidden" asp-for="SolicitudCitaId" />
+        <input type="hidden" asp-for="PacienteId" />
+        <input type="hidden" asp-for="NombrePaciente" />
+        <input type="hidden" asp-for="MotivoSolicitud" />
+        <input type="hidden" asp-for="FechaHora" id="fechaHoraCompleta" />
+
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label asp-for="SucursalId">Sede / Sucursal</label>
+                <select asp-for="SucursalId" class="form-select" id="sucursalId" required>
+                    <option value="">Seleccione una sede</option>
+                    @if (Model.SucursalesList != null)
+                    {
+                        @foreach (var item in Model.SucursalesList)
+                        {
+                            <option value="@item.Value" selected="@(item.Value == Model.SucursalId.ToString())">@item.Text</option>
+                        }
+                    }
+                </select>
+                <span asp-validation-for="SucursalId" class="text-danger"></span>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label for="fecha">Fecha (Lunes a Domingo)</label>
+                <input type="date" id="fecha" class="form-control" required />
+                <span id="msgFecha" class="text-danger small"></span>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label for="hora">Hora disponible</label>
+                <select id="hora" class="form-select" required>
+                    <option value="">Primero elija sede y fecha</option>
+                </select>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label asp-for="UsuarioAsignadoId">Optometrista (opcional)</label>
+                <select asp-for="UsuarioAsignadoId" class="form-select" asp-items="Model.OptometristasList">
+                    <option value="">Ninguno</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Observaciones"></label>
+            <textarea asp-for="Observaciones" class="form-control" rows="3"></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-brand">
+            <i class="bi bi-calendar-check"></i> Confirmar Cita
+        </button>
+        <a asp-action="Index" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Volver
+        </a>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        (function () {
+            var sucursalId = $('#sucursalId');
+            var fecha = $('#fecha');
+            var hora = $('#hora');
+            var fechaHoraCompleta = $('#fechaHoraCompleta');
+
+            function cargarHoras() {
+                var sid = sucursalId.val();
+                var f = fecha.val();
+                hora.empty().append('<option value="">Cargando...</option>');
+                if (!sid || !f) {
+                    hora.empty().append('<option value="">Seleccione sede y fecha</option>');
+                    return;
+                }
+                $.get('@Url.Action("ObtenerHorasDisponibles", "SolicitudesCitas")', { sucursalId: sid, fecha: f })
+                    .done(function (horas) {
+                        hora.empty().append('<option value="">Seleccione hora</option>');
+                        if (horas && horas.length) {
+                            horas.forEach(function (h) {
+                                hora.append('<option value="' + h + '">' + h + '</option>');
+                            });
+                        } else {
+                            hora.append('<option value="">Sin disponibilidad</option>');
+                        }
+                    })
+                    .fail(function () {
+                        hora.empty().append('<option value="">Error al cargar</option>');
+                    });
+            }
+
+            sucursalId.on('change', cargarHoras);
+            fecha.on('change', cargarHoras);
+            fecha.on('change', function () { $('#msgFecha').text(''); });
+
+            @if (Model.FechaHora != default(DateTime))
+            {
+                <text>
+                var m = new Date('@Model.FechaHora.ToString("yyyy-MM-ddTHH:mm")');
+                fecha.val(m.toISOString().slice(0, 10));
+                if (sucursalId.val()) cargarHoras();
+                var hh = m.getHours(), mm = m.getMinutes();
+                var slot = (mm >= 30) ? (hh + ':30') : (hh + ':00');
+                setTimeout(function () { hora.val(hh.toString().padStart(2, '0') + ':' + (mm >= 30 ? '30' : '00')); }, 500);
+                </text>
+            }
+
+            function actualizarHidden() {
+                var f = fecha.val();
+                var h = hora.val();
+                if (!f || !h) return;
+                var parts = h.split(':');
+                var dateStr = f + 'T' + (parts[0] || '08') + ':' + (parts[1] || '00') + ':00';
+                fechaHoraCompleta.val(dateStr);
+            }
+
+            hora.on('change', actualizarHidden);
+
+            $('#formAgendar').on('submit', function () {
+                actualizarHidden();
+                if (!hora.val() || hora.val().indexOf('Seleccione') >= 0 || hora.val().indexOf('Sin ') >= 0 || hora.val().indexOf('Error') >= 0) {
+                    alert('Seleccione una hora disponible.');
+                    return false;
+                }
+            });
+        })();
+    </script>
+}

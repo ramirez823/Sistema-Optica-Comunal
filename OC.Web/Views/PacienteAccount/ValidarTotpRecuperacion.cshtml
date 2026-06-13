@@ -1,0 +1,35 @@
+@model OC.Web.ViewModels.ValidarTotpViewModel
+@{
+    ViewData["Title"] = "Validar código TOTP";
+}
+
+<div class="card-dashboard">
+    <h4>Validar código autenticador</h4>
+    <p class="text-muted mb-2">
+        Cuenta: <strong>@ViewBag.Correo</strong><br />
+        Ingrese el código de 6 dígitos de su app autenticadora.
+    </p>
+
+    <div class="alert alert-info">
+        Si es su primera vez configurando esta cuenta, agregue una cuenta manualmente en Google Authenticator/Microsoft Authenticator con esta llave:
+        <div class="mt-2"><code>@ViewBag.ManualKey</code></div>
+    </div>
+
+    <form asp-action="ValidarTotpRecuperacion" asp-route-token="@ViewBag.Token" method="post">
+        <input type="hidden" name="token" value="@ViewBag.Token" />
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+        <div class="mb-3">
+            <label asp-for="Codigo" class="form-label"></label>
+            <input asp-for="Codigo" class="form-control" maxlength="6" placeholder="123456" autocomplete="one-time-code" />
+            <span asp-validation-for="Codigo" class="text-danger"></span>
+        </div>
+
+        <button type="submit" class="btn btn-brand">Validar código</button>
+        <a asp-action="RecuperarContrasena" class="btn btn-secondary">Cancelar</a>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

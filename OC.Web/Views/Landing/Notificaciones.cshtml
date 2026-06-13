@@ -1,0 +1,39 @@
+@{
+    Layout = "_LayoutLanding";
+    ViewData["Title"] = "Mis Notificaciones";
+    var pagination = new OC.Web.Models.PaginationInfo
+    {
+        CurrentPage = Model.PageIndex,
+        TotalPages = Model.TotalPages,
+        GetPageUrl = (page) => Url.Action("Notificaciones", new { page }) ?? "#"
+    };
+}
+@model OC.Core.Common.PagedResult<OC.Core.Domain.Entities.EnvioNotificacion>
+
+<div class="container my-5">
+    <h1 class="text-center mb-4">Mis Notificaciones</h1>
+
+    @if (!Model.Items.Any())
+    {
+        <div class="card card-premium text-center p-4">
+            <p class="landing-subtitle mb-0">No tienes notificaciones.</p>
+        </div>
+    }
+    else
+    {
+        <div class="list-group landing-notificaciones-list">
+            @foreach (var notif in Model.Items)
+            {
+                <div class="list-group-item landing-notificacion-item">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-1">@notif.TipoNotificacion</h5>
+                        <small class="landing-subtitle">@notif.FechaHoraEnvio.ToString("dd/MM/yyyy HH:mm")</small>
+                    </div>
+                    <p class="mb-1">@notif.MensajeResumen</p>
+                    <small class="landing-subtitle">Canal: @notif.Canal</small>
+                </div>
+            }
+        </div>
+        <partial name="_Pagination" model="pagination" />
+    }
+</div>

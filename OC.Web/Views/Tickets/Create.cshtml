@@ -1,0 +1,358 @@
+﻿@model OC.Web.ViewModels.TicketCreateViewModel
+@{
+    ViewData["Title"] = "Nuevo Ticket de Soporte";
+}
+
+<style>
+    .ticket-wrapper {
+        max-width: 680px;
+        margin: 2rem auto;
+    }
+
+    /* ── Cabecera del formulario ── */
+    .ticket-header {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        margin-bottom: 2rem;
+    }
+
+        .ticket-header .icon-wrap {
+            width: 48px;
+            height: 48px;
+            background: #1a3c6e;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+            .ticket-header .icon-wrap i {
+                font-size: 22px;
+                color: #fff;
+            }
+
+        .ticket-header h4 {
+            margin: 0;
+            font-size: 20px;
+            font-weight: 700;
+            color: #1a3c6e;
+        }
+
+        .ticket-header p {
+            margin: 2px 0 0;
+            font-size: 13px;
+            color: #6b7280;
+        }
+
+    /* ── Tarjeta principal ── */
+    .ticket-card {
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        padding: 2rem;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.07);
+    }
+
+    /* ── Grupos de campo ── */
+    .field-group {
+        margin-bottom: 1.5rem;
+    }
+
+        .field-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 6px;
+            letter-spacing: .2px;
+        }
+
+            .field-group label .req {
+                color: #e53e3e;
+                margin-left: 2px;
+            }
+
+        .field-group .hint {
+            font-size: 11.5px;
+            color: #9ca3af;
+            margin-top: 5px;
+        }
+
+        /* ── Inputs y selects ── */
+        .field-group input.form-control,
+        .field-group textarea.form-control,
+        .field-group select.form-select {
+            width: 100%;
+            background: #f8fafc;
+            border: 1.5px solid #cbd5e1;
+            border-radius: 10px;
+            padding: 10px 14px;
+            font-size: 13.5px;
+            color: #111827;
+            transition: border-color .2s, box-shadow .2s, background .2s;
+            outline: none;
+        }
+
+            .field-group input.form-control::placeholder,
+            .field-group textarea.form-control::placeholder {
+                color: #b0bac8;
+                font-style: italic;
+            }
+
+            .field-group input.form-control:focus,
+            .field-group textarea.form-control:focus,
+            .field-group select.form-select:focus {
+                border-color: #1a3c6e;
+                background: #fff;
+                box-shadow: 0 0 0 3px rgba(26,60,110,0.12);
+                color: #111827;
+            }
+
+        .field-group textarea.form-control {
+            resize: vertical;
+            min-height: 130px;
+        }
+
+    /* Icono prefijo en inputs ── */
+    .input-icon-wrap {
+        position: relative;
+    }
+
+        .input-icon-wrap i {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+            font-size: 15px;
+            pointer-events: none;
+        }
+
+        .input-icon-wrap input,
+        .input-icon-wrap select {
+            padding-left: 38px !important;
+        }
+
+    .textarea-icon-wrap {
+        position: relative;
+    }
+
+        .textarea-icon-wrap i {
+            position: absolute;
+            left: 12px;
+            top: 13px;
+            color: #94a3b8;
+            font-size: 15px;
+            pointer-events: none;
+        }
+
+        .textarea-icon-wrap textarea {
+            padding-left: 38px !important;
+        }
+
+    /* ── Separador ── */
+    .divider {
+        border: none;
+        border-top: 1px solid #e9edf3;
+        margin: 1.75rem 0;
+    }
+
+    /* ── Botones ── */
+    .btn-submit {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 24px;
+        background: #1a3c6e;
+        color: #fff;
+        border: none;
+        border-radius: 10px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background .2s, transform .15s, box-shadow .2s;
+        position: relative;
+        overflow: hidden;
+    }
+
+        .btn-submit:hover {
+            background: #14305a;
+            box-shadow: 0 4px 14px rgba(26,60,110,0.35);
+            transform: translateY(-1px);
+        }
+
+    .btn-cancel {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 20px;
+        background: transparent;
+        color: #6b7280;
+        border: 1.5px solid #d1d5db;
+        border-radius: 10px;
+        font-size: 14px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: border-color .2s, color .2s, background .2s;
+    }
+
+        .btn-cancel:hover {
+            border-color: #1a3c6e;
+            color: #1a3c6e;
+            background: #f0f4fb;
+        }
+
+    /* ── Validación ── */
+    .text-danger.small {
+        font-size: 12px;
+        margin-top: 4px;
+        display: block;
+    }
+
+    /* ── Badge de campo requerido ── */
+    .badge-opcional {
+        font-size: 10px;
+        font-weight: 500;
+        background: #e9edf3;
+        color: #6b7280;
+        padding: 2px 7px;
+        border-radius: 20px;
+        margin-left: 6px;
+        vertical-align: middle;
+    }
+
+    /* ── Animación de entrada ── */
+    .ticket-card {
+        animation: fadeUp 0.4s ease both;
+    }
+
+    @@keyframes fadeUp {
+        from {
+            opacity: 0;
+            transform: translateY(18px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+
+<div class="ticket-wrapper">
+
+    <!-- Encabezado -->
+    <div class="ticket-header">
+        <div class="icon-wrap">
+            <i class="bi bi-ticket-perforated-fill"></i>
+        </div>
+        <div>
+            <h4>Crear Ticket de Soporte</h4>
+            <p>Completá el formulario y nuestro equipo atenderá tu solicitud.</p>
+        </div>
+    </div>
+
+    <!-- Tarjeta del formulario -->
+    <div class="ticket-card">
+        <form asp-action="Create" method="post" id="createTicketForm">
+            @Html.AntiForgeryToken()
+
+            <!-- Título -->
+            <div class="field-group">
+                <label asp-for="Titulo">
+                    Título <span class="req">*</span>
+                </label>
+                <div class="input-icon-wrap">
+                    <i class="bi bi-fonts"></i>
+                    <input asp-for="Titulo"
+                           class="form-control"
+                           placeholder="Ej: Problema con el software de facturación" />
+                </div>
+                <span asp-validation-for="Titulo" class="text-danger small"></span>
+                <div class="hint">Escribí un título claro y breve que describa el problema.</div>
+            </div>
+
+            <!-- Descripción -->
+            <div class="field-group">
+                <label asp-for="Descripcion">
+                    Descripción <span class="req">*</span>
+                </label>
+                <div class="textarea-icon-wrap">
+                    <i class="bi bi-card-text"></i>
+                    <textarea asp-for="Descripcion"
+                              class="form-control"
+                              rows="5"
+                              placeholder="Describí con detalle el problema: qué sucedió, cuándo ocurrió y qué pasos realizaste..."></textarea>
+                </div>
+                <span asp-validation-for="Descripcion" class="text-danger small"></span>
+                <div class="hint">Cuanto más detalle incluyas, más rápido podremos ayudarte.</div>
+            </div>
+
+            <hr class="divider" />
+
+            <!-- Equipo -->
+            <div class="field-group">
+                <label asp-for="EquipoId">
+                    Equipo relacionado
+                    <span class="badge-opcional">Opcional</span>
+                </label>
+                <div class="input-icon-wrap">
+                    <i class="bi bi-pc-display"></i>
+                    <select asp-for="EquipoId" asp-items="Model.EquiposList" class="form-select">
+                        <option value="">-- Seleccioná un equipo --</option>
+                    </select>
+                </div>
+                <div class="hint">Si el problema está relacionado con un equipo específico, seleccionalo.</div>
+            </div>
+
+            <!-- Acciones -->
+            <div class="d-flex gap-3 mt-4">
+                <button type="submit" class="btn-submit" id="submitBtn">
+                    <i class="bi bi-send-fill"></i> Enviar Ticket
+                </button>
+                <a asp-action="MisTickets" class="btn-cancel">
+                    <i class="bi bi-arrow-left"></i> Cancelar
+                </a>
+            </div>
+        </form>
+    </div>
+
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        // Efecto ripple en botones
+        document.querySelectorAll('.btn-submit, .btn-cancel').forEach(btn => {
+            btn.addEventListener('click', function (e) {
+                const ripple = document.createElement('span');
+                const rect = this.getBoundingClientRect();
+                const size = Math.max(rect.width, rect.height);
+                ripple.style.cssText = `
+                    position: absolute;
+                    width: ${size}px;
+                    height: ${size}px;
+                    left: ${e.clientX - rect.left - size / 2}px;
+                    top: ${e.clientY - rect.top - size / 2}px;
+                    background: rgba(255,255,255,0.3);
+                    border-radius: 50%;
+                    transform: scale(0);
+                    animation: ripple-anim 0.5s ease-out;
+                    pointer-events: none;
+                `;
+                this.appendChild(ripple);
+                setTimeout(() => ripple.remove(), 500);
+            });
+        });
+    </script>
+    <style>
+        @@keyframes ripple-anim {
+            to {
+                transform: scale(3);
+                opacity: 0;
+            }
+        }
+    </style>
+}

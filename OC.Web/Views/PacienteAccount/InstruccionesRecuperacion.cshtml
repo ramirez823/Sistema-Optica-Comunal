@@ -1,0 +1,20 @@
+@{
+    ViewData["Title"] = "Instrucciones de recuperación";
+    var link = ViewBag.LinkRecuperacion as string ?? "";
+}
+
+<div class="card-dashboard">
+    <h4>Restablecer contraseña</h4>
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success">@TempData["Success"]</div>
+    }
+    <p class="mb-2">Use el siguiente enlace (válido por 1 hora). No comparta este enlace con nadie.</p>
+    <div class="mb-3">
+        <a href="@link" class="btn btn-brand">Abrir enlace para restablecer contraseña</a>
+    </div>
+    <p class="text-muted small">Si no puede hacer clic, copie y pegue esta dirección en su navegador:</p>
+    <code class="d-block bg-light p-2 small text-break">@link</code>
+    <hr />
+    <a asp-action="Login" class="btn btn-secondary">Volver al inicio de sesión</a>
+</div>

@@ -1,0 +1,264 @@
+﻿@model OC.Core.Domain.Entities.Ticket
+@using OC.Core.Services
+@{
+    ViewData["Title"] = $"Ticket {Model.NumeroSeguimiento}";
+}
+
+<div class="card-dashboard animate-on-scroll" data-delay="0">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4>
+            <i class="bi bi-ticket-detailed me-2"></i> Detalle del Ticket
+        </h4>
+        <span class="badge bg-@(Model.Estado == "Cerrado" ? "success" : "primary") fs-6">@Model.Estado</span>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <dl class="row">
+                <dt class="col-sm-4">Número</dt>
+                <dd class="col-sm-8">@Model.NumeroSeguimiento</dd>
+
+                <dt class="col-sm-4">Título</dt>
+                <dd class="col-sm-8">@Model.Titulo</dd>
+
+                <dt class="col-sm-4">Descripción</dt>
+                <dd class="col-sm-8">@Model.Descripcion</dd>
+
+                @if (!string.IsNullOrEmpty(Model.Prioridad))
+                {
+                    <dt class="col-sm-4">Prioridad</dt>
+                    <dd class="col-sm-8">@Model.Prioridad</dd>
+                }
+
+                @if (!string.IsNullOrEmpty(Model.Tipo))
+                {
+                    <dt class="col-sm-4">Tipo</dt>
+                    <dd class="col-sm-8">@Model.Tipo</dd>
+                }
+
+                <dt class="col-sm-4">Fecha creación</dt>
+                <dd class="col-sm-8">@Model.FechaCreacion.ToString("dd/MM/yyyy HH:mm")</dd>
+
+                @if (Model.FechaAsignacion.HasValue)
+                {
+                    <dt class="col-sm-4">Fecha asignación</dt>
+                    <dd class="col-sm-8">@Model.FechaAsignacion.Value.ToString("dd/MM/yyyy HH:mm")</dd>
+                }
+
+                @if (Model.FechaCierre.HasValue)
+                {
+                    <dt class="col-sm-4">Fecha cierre</dt>
+                    <dd class="col-sm-8">@Model.FechaCierre.Value.ToString("dd/MM/yyyy HH:mm")</dd>
+                }
+            </dl>
+        </div>
+        <div class="col-md-6">
+            <dl class="row">
+                <dt class="col-sm-4">Creado por</dt>
+                <dd class="col-sm-8">@Model.CreadoPor?.Nombre</dd>
+
+                <dt class="col-sm-4">Técnico asignado</dt>
+                <dd class="col-sm-8">@(Model.TecnicoAsignado?.Nombre ?? "Sin asignar")</dd>
+
+                @if (Model.Equipo != null)
+                {
+                    <dt class="col-sm-4">Equipo relacionado</dt>
+                    <dd class="col-sm-8">
+                        <a asp-controller="Equipos" asp-action="Details" asp-route-id="@Model.Equipo.Id">@Model.Equipo.Nombre (@Model.Equipo.Tipo)</a>
+                    </dd>
+                }
+
+                @if (Model.Prioridad != null)
+                {
+                    <dt class="col-sm-4">SLA Respuesta</dt>
+                    <dd class="col-sm-8">
+                        @if (Model.FechaRespuestaEsperada.HasValue)
+                        {
+                            var status = SLAService.ObtenerEstadoSLA(Model);
+                            var classBadge = SLAService.ObtenerClaseCSS(status);
+                            <span class="@classBadge">@SLAService.ObtenerTextoEstado(status)</span>
+                            <div class="small text-muted">Esperada: @Model.FechaRespuestaEsperada.Value.ToString("dd/MM/yyyy HH:mm")</div>
+                            @if (!Model.FechaPrimeraRespuesta.HasValue && status == SLATicketStatus.RespuestaPorVencer)
+                            {
+                                <div class="sla-countdown mt-1" data-target="@Model.FechaRespuestaEsperada.Value.ToString("o")"></div>
+                            }
+                        }
+                        else
+                        {
+                            <span class="text-muted">-</span>
+                        }
+                    </dd>
+
+                    <dt class="col-sm-4">SLA Resolución</dt>
+                    <dd class="col-sm-8">
+                        @if (Model.FechaResolucionEsperada.HasValue)
+                        {
+                            var status = SLAService.ObtenerEstadoSLA(Model);
+                            var classBadge = SLAService.ObtenerClaseCSS(status);
+                            <span class="@classBadge">@SLAService.ObtenerTextoEstado(status)</span>
+                            <div class="small text-muted">Esperada: @Model.FechaResolucionEsperada.Value.ToString("dd/MM/yyyy HH:mm")</div>
+                            @if (!Model.FechaCierre.HasValue && status == SLATicketStatus.ResolucionPorVencer)
+                            {
+                                <div class="sla-countdown mt-1" data-target="@Model.FechaResolucionEsperada.Value.ToString("o")"></div>
+                            }
+                        }
+                        else
+                        {
+                            <span class="text-muted">-</span>
+                        }
+                    </dd>
+                }
+            </dl>
+        </div>
+    </div>
+
+    @if (Model.FechaResolucion.HasValue || !string.IsNullOrEmpty(Model.SolucionAplicada))
+    {
+        <hr />
+        <h5 class="mt-3">Información de resolución</h5>
+        <div class="row">
+            @if (!string.IsNullOrEmpty(Model.SolucionAplicada))
+            {
+                <div class="col-md-12 mb-2">
+                    <strong>Solución aplicada:</strong> @Model.SolucionAplicada
+                </div>
+            }
+            @if (!string.IsNullOrEmpty(Model.TiempoDedicado))
+            {
+                <div class="col-md-6">
+                    <strong>Tiempo dedicado:</strong> @Model.TiempoDedicado
+                </div>
+            }
+            @if (Model.CalificacionCliente.HasValue)
+            {
+                <div class="col-md-6">
+                    <strong>Calificación del cliente:</strong>
+                    @string.Concat(Enumerable.Repeat("⭐", Model.CalificacionCliente.Value)) (@Model.CalificacionCliente.Value/5)
+                </div>
+            }
+            @if (!string.IsNullOrEmpty(Model.ComentarioCliente))
+            {
+                <div class="col-md-12">
+                    <strong>Comentario del cliente:</strong> @Model.ComentarioCliente
+                </div>
+            }
+            @if (Model.Reabierto)
+            {
+                <div class="col-md-12 text-warning">
+                    <i class="bi bi-arrow-repeat"></i> Este ticket fue reabierto el @Model.FechaReapertura?.ToString("dd/MM/yyyy")
+                    <br /><strong>Motivo:</strong> @Model.MotivoReapertura
+                </div>
+            }
+        </div>
+    }
+
+    @if (!string.IsNullOrEmpty(Model.ObservacionesInternas))
+    {
+        <hr />
+        <div>
+            <strong>Observaciones internas (solo equipo técnico):</strong>
+            <p class="bg-light p-3 rounded mt-2">@Model.ObservacionesInternas</p>
+        </div>
+    }
+
+    @if (!string.IsNullOrEmpty(Model.ObservacionesCierre))
+    {
+        <hr />
+        <div>
+            <strong>Observaciones de cierre:</strong>
+            <p class="bg-light p-3 rounded mt-2">@Model.ObservacionesCierre</p>
+        </div>
+    }
+
+    <hr />
+    <div class="d-flex gap-2 mt-3">
+        @if (User.IsInRole("Tecnico") || User.IsInRole("Admin"))
+        {
+            @if (Model.Estado != "Cerrado" && Model.Estado != "Resuelto")
+            {
+                <a asp-action="Clasificar" asp-route-id="@Model.Id" class="btn btn-sm btn-warning">
+                    <i class="bi bi-tags"></i> Clasificar
+                </a>
+            }
+            @if (Model.TecnicoAsignadoId.HasValue && Model.TecnicoAsignadoId.ToString() == User.FindFirst("UserId")?.Value && Model.FechaPrimeraRespuesta == null && Model.Estado != "Resuelto" && Model.Estado != "Cerrado")
+            {
+                <form asp-action="RegistrarRespuesta" asp-route-id="@Model.Id" method="post" class="d-inline">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-sm btn-success">
+                        <i class="bi bi-chat-dots"></i> Registrar Respuesta
+                    </button>
+                </form>
+            }
+            @if ((Model.Estado == "Asignado" || Model.Estado == "En Proceso") && (Model.TecnicoAsignadoId.ToString() == User.FindFirst("UserId")?.Value || User.IsInRole("Admin")))
+            {
+                <a asp-action="Resolver" asp-route-id="@Model.Id" class="btn btn-sm btn-primary">
+                    <i class="bi bi-check-lg"></i> Resolver
+                </a>
+            }
+
+
+
+        }
+        @if (User.IsInRole("Admin") && (Model.TecnicoAsignadoId == null || Model.Estado == "Pendiente"))
+        {
+            <a asp-action="Asignar" asp-route-id="@Model.Id" class="btn btn-sm btn-primary">
+                <i class="bi bi-person-plus"></i> Asignar
+            </a>
+            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-sm btn-outline-secondary">
+                <i class="bi bi-pencil"></i> Editar
+            </a>
+        }
+        @if (User.IsInRole("Cliente") && Model.Estado == "Resuelto")
+        {
+            <form asp-action="Calificar" method="post" class="d-inline">
+                <input type="hidden" name="id" value="@Model.Id" />
+                <select name="calificacion" class="form-select form-select-sm d-inline-block w-auto">
+                    <option value="5">⭐⭐⭐⭐⭐</option>
+                    <option value="4">⭐⭐⭐⭐</option>
+                    <option value="3">⭐⭐⭐</option>
+                    <option value="2">⭐⭐</option>
+                    <option value="1">⭐</option>
+                </select>
+                <input type="text" name="comentario" placeholder="Comentario (opcional)" class="form-control form-control-sm d-inline-block w-auto" />
+                <button type="submit" class="btn btn-sm btn-success">Calificar y cerrar</button>
+            </form>
+            <form asp-action="Reabrir" method="post" class="d-inline">
+                <input type="hidden" name="id" value="@Model.Id" />
+                <input type="text" name="motivo" placeholder="Motivo de reapertura" class="form-control form-control-sm d-inline-block w-auto" required />
+                <button type="submit" class="btn btn-sm btn-warning">Reabrir ticket</button>
+            </form>
+        }
+        <a asp-action="MisTickets" class="btn btn-sm btn-secondary">
+            <i class="bi bi-arrow-left"></i> Volver
+        </a>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        anime({
+            targets: '.animate-on-scroll',
+            opacity: [0, 1],
+            translateY: [20, 0],
+            duration: 600,
+            easing: 'easeOutCubic'
+        });
+
+        function updateTimers() {
+            document.querySelectorAll('.sla-countdown').forEach(el => {
+                const target = new Date(el.dataset.target);
+                const now = new Date();
+                const diff = target - now;
+                if (diff <= 0) {
+                    el.innerHTML = '<span class="text-danger">Vencido</span>';
+                } else {
+                    const hours = Math.floor(diff / (1000 * 60 * 60));
+                    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                    el.innerHTML = `<i class="bi bi-hourglass-split"></i> ${hours}h ${minutes}m`;
+                }
+            });
+        }
+        updateTimers();
+        setInterval(updateTimers, 60000);
+    </script>
+}

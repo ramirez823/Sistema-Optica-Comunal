@@ -1,0 +1,151 @@
+@model OC.Web.ViewModels.OrdenTrabajoViewModel
+
+<div class="card-dashboard">
+    <h4>Nueva orden de trabajo</h4>
+    <p class="text-muted">Registre una orden de trabajo (lentes) para un paciente. Luego podrá cambiar el estado a "Lista" y el paciente recibirá una notificación.</p>
+
+    <form asp-action="Create" method="post">
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label asp-for="PacienteId" class="form-label"></label>
+                <select asp-for="PacienteId" asp-items="ViewBag.Pacientes" class="form-select">
+                    <option value="">-- Seleccione paciente --</option>
+                </select>
+                <span asp-validation-for="PacienteId" class="text-danger"></span>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label asp-for="SucursalId" class="form-label"></label>
+                <select asp-for="SucursalId" asp-items="ViewBag.Sucursales" class="form-select">
+                    <option value="">-- Seleccione sucursal --</option>
+                </select>
+                <span asp-validation-for="SucursalId" class="text-danger"></span>
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="VentaId" class="form-label">Venta asociada (opcional)</label>
+            <select asp-for="VentaId" id="VentaId" class="form-select">
+                <option value="">-- Sin venta asociada --</option>
+            </select>
+            <span asp-validation-for="VentaId" class="text-danger"></span>
+            <small class="text-muted">Seleccione un paciente para ver las ventas disponibles.</small>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Referencia" class="form-label"></label>
+            <input asp-for="Referencia" class="form-control" placeholder="Ej: Lente progresivo" />
+        </div>
+
+        <!-- Datos del lente -->
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <i class="bi bi-eyedropper"></i> Datos del lente
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label asp-for="PD" class="form-label">PD (mm)</label>
+                        <input asp-for="PD" class="form-control" type="number" step="1" min="50" max="80" placeholder="Ej: 63" />
+                        <span asp-validation-for="PD" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label asp-for="TipoLente" class="form-label">Tipo de lente</label>
+                        <select asp-for="TipoLente" class="form-select">
+                            <option value="">-- Seleccione --</option>
+                            <option value="Monofocal">Monofocal</option>
+                            <option value="Bifocal">Bifocal</option>
+                            <option value="Progresivo">Progresivo</option>
+                            <option value="Lente de contacto">Lente de contacto</option>
+                            <option value="Otro">Otro</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label asp-for="MaterialLente" class="form-label">Material del lente</label>
+                        <select asp-for="MaterialLente" class="form-select">
+                            <option value="">-- Seleccione --</option>
+                            <option value="1.50">1.50 (Standard)</option>
+                            <option value="1.60">1.60 (Alto índice)</option>
+                            <option value="1.67">1.67 (Super alto índice)</option>
+                            <option value="1.74">1.74 (Ultra alto índice)</option>
+                            <option value="Otro">Otro</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12 mb-3">
+                        <label class="form-label">Tratamientos</label>
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" id="tratAntiReflejo" value="AntiReflejo" />
+                            <label class="form-check-label" for="tratAntiReflejo">Anti-reflejo</label>
+                        </div>
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" id="tratFiltroAzul" value="FiltroAzul" />
+                            <label class="form-check-label" for="tratFiltroAzul">Filtro azul</label>
+                        </div>
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" id="tratFotocromatico" value="Fotocromatico" />
+                            <label class="form-check-label" for="tratFotocromatico">Fotocromático</label>
+                        </div>
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" id="tratEndurecido" value="Endurecido" />
+                            <label class="form-check-label" for="tratEndurecido">Endurecido</label>
+                        </div>
+                        <input type="hidden" name="Tratamientos" id="Tratamientos" />
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="LaboratorioExterno" class="form-label">Laboratorio externo (opcional)</label>
+                        <input asp-for="LaboratorioExterno" class="form-control" placeholder="Nombre del laboratorio" />
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Crear orden</button>
+        <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script>
+        $(function () {
+            $('#VentaId').select2({
+                placeholder: '-- Sin venta asociada --',
+                allowClear: true,
+                width: '100%'
+            });
+
+            $('#PacienteId').change(function () {
+                var pacienteId = $(this).val();
+                var ventaSelect = $('#VentaId');
+                ventaSelect.empty().append('<option value="">-- Cargando ventas --</option>');
+
+                if (!pacienteId) {
+                    ventaSelect.empty().append('<option value="">-- Sin venta asociada --</option>');
+                    return;
+                }
+
+                $.get('/api/ordenes-trabajo/ventas-por-paciente/' + pacienteId, function (data) {
+                    ventaSelect.empty().append('<option value="">-- Sin venta asociada --</option>');
+                    $.each(data, function (i, v) {
+                        ventaSelect.append('<option value="' + v.id + '">' + v.numeroFactura + ' — ' + v.total.toFixed(2) + ' ('
+                            + new Date(v.fechaVenta).toLocaleDateString('es-CR') + ')</option>');
+                    });
+                }).fail(function () {
+                    ventaSelect.empty().append('<option value="">-- Sin venta asociada --</option>');
+                });
+            });
+
+            $('form').submit(function () {
+                var treatments = [];
+                $('#tratAntiReflejo:checked, #tratFiltroAzul:checked, #tratFotocromatico:checked, #tratEndurecido:checked')
+                    .each(function () { treatments.push($(this).val()); });
+                $('#Tratamientos').val(treatments.join(','));
+            });
+        });
+    </script>
+}

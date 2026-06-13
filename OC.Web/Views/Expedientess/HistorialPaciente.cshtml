@@ -1,0 +1,85 @@
+﻿@model IEnumerable<OC.Core.Domain.Entities.Expediente>
+
+<div class="card-dashboard">
+    <h4>Historial de Expedientes del Paciente</h4>
+
+    @if (TempData["Info"] != null)
+    {
+        <div class="alert alert-info">@TempData["Info"]</div>
+    }
+
+    @if (!Model.Any())
+    {
+        <p>No hay expedientes registrados para este paciente.</p>
+    }
+    else
+    {
+        @foreach (var exp in Model)
+        {
+            <div class="card mb-3">
+                <div class="card-header bg-light">
+                    <strong>@exp.Cita?.Paciente?.NombreCompleto</strong> -
+                    Cita: @exp.Cita?.FechaHora.ToString("dd/MM/yyyy HH:mm")
+                </div>
+                <div class="card-body">
+                    <p><strong>Motivo:</strong> @exp.MotivoConsulta</p>
+                    @if (!string.IsNullOrEmpty(exp.Observaciones))
+                    {
+                        <p><strong>Observaciones:</strong> @exp.Observaciones</p>
+                    }
+                    <p><strong>Fecha de registro:</strong> @exp.FechaRegistro.ToString("dd/MM/yyyy HH:mm")</p>
+
+                    @if (exp.ValoresClinicos != null && exp.ValoresClinicos.Any())
+                    {
+                        <h6>Valores Clínicos</h6>
+                        <table class="table table-sm table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Diagnóstico</th>
+                                    <th>Esf OD</th>
+                                    <th>Cil OD</th>
+                                    <th>Eje OD</th>
+                                    <th>Esf OI</th>
+                                    <th>Cil OI</th>
+                                    <th>Eje OI</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var vc in exp.ValoresClinicos)
+                                {
+                                    <tr>
+                                        <td>@vc.Diagnostico</td>
+                                        <td>@vc.EsferaOD</td>
+                                        <td>@vc.CilindroOD</td>
+                                        <td>@vc.EjeOD</td>
+                                        <td>@vc.EsferaOI</td>
+                                        <td>@vc.CilindroOI</td>
+                                        <td>@vc.EjeOI</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+
+                    @if (exp.Documentos != null && exp.Documentos.Any())
+                    {
+                        <h6>Documentos</h6>
+                        <ul>
+                            @foreach (var doc in exp.Documentos)
+                            {
+                                <li><a href="@doc.RutaArchivo" target="_blank">@doc.NombreArchivo</a></li>
+                            }
+                        </ul>
+                    }
+
+                    <div class="mt-2">
+                        <a asp-controller="Expedientess" asp-action="Details" asp-route-id="@exp.Id" class="btn btn-sm btn-info">Ver detalle</a>
+                        <a asp-controller="Expedientess" asp-action="Edit" asp-route-id="@exp.Id" class="btn btn-sm btn-warning">Editar</a>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+
+    <a asp-controller="Pacientes" asp-action="Index" class="btn btn-secondary">Volver a pacientes</a>
+</div>

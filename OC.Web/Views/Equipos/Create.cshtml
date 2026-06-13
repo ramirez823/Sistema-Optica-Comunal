@@ -1,0 +1,97 @@
+﻿@model OC.Web.ViewModels.EquipoViewModel
+
+<div class="card-dashboard">
+    <h4>Registrar Equipo</h4>
+
+    <form asp-action="Create" method="post">
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label asp-for="Nombre"></label>
+                <input asp-for="Nombre" class="form-control" />
+                <span asp-validation-for="Nombre" class="text-danger"></span>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label asp-for="Tipo"></label>
+                <input asp-for="Tipo" class="form-control" placeholder="Ej: Computadora, Laptop, Monitor" />
+                <span asp-validation-for="Tipo" class="text-danger"></span>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-4 mb-3">
+                <label asp-for="Marca"></label>
+                <input asp-for="Marca" class="form-control" />
+            </div>
+            <div class="col-md-4 mb-3">
+                <label asp-for="Modelo"></label>
+                <input asp-for="Modelo" class="form-control" />
+            </div>
+            <div class="col-md-4 mb-3">
+                <label asp-for="NumeroSerie"></label>
+                <input asp-for="NumeroSerie" class="form-control" />
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-4 mb-3">
+                <label asp-for="Procesador"></label>
+                <input asp-for="Procesador" class="form-control" />
+            </div>
+            <div class="col-md-4 mb-3">
+                <label asp-for="RAM"></label>
+                <input asp-for="RAM" class="form-control" placeholder="Ej: 8GB" />
+            </div>
+            <div class="col-md-4 mb-3">
+                <label asp-for="Disco"></label>
+                <input asp-for="Disco" class="form-control" placeholder="Ej: 256GB SSD" />
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label asp-for="SistemaOperativo"></label>
+                <input asp-for="SistemaOperativo" class="form-control" />
+            </div>
+            <div class="col-md-6 mb-3">
+                <label asp-for="VersionSO"></label>
+                <input asp-for="VersionSO" class="form-control" />
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-4 mb-3">
+                <label asp-for="Inventario"></label>
+                <input asp-for="Inventario" class="form-control" placeholder="N° de inventario" />
+            </div>
+            <div class="col-md-4 mb-3">
+                <label asp-for="FechaCompra"></label>
+                <input asp-for="FechaCompra" type="date" class="form-control" />
+            </div>
+            <div class="col-md-4 mb-3">
+                <label asp-for="GarantiaMeses"></label>
+                <input asp-for="GarantiaMeses" type="number" class="form-control" placeholder="Meses de garantía" />
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="UsuarioAsignadoId">Usuario asignado</label>
+            <select asp-for="UsuarioAsignadoId" asp-items="Model.UsuariosList" class="form-select">
+                <option value="">Ninguno</option>
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Observaciones"></label>
+            <textarea asp-for="Observaciones" class="form-control" rows="3"></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Guardar</button>
+        <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+    </form>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

@@ -1,0 +1,55 @@
+﻿@model OC.Core.Domain.Entities.Equipo
+
+<div class="card-dashboard">
+    <h4>Detalle del Equipo</h4>
+
+    <dl class="row">
+        <dt class="col-sm-3">Nombre</dt>
+        <dd class="col-sm-9">@Model.Nombre</dd>
+
+        <dt class="col-sm-3">Tipo</dt>
+        <dd class="col-sm-9">@Model.Tipo</dd>
+
+        <dt class="col-sm-3">Marca</dt>
+        <dd class="col-sm-9">@Model.Marca</dd>
+
+        <dt class="col-sm-3">Modelo</dt>
+        <dd class="col-sm-9">@Model.Modelo</dd>
+
+        <dt class="col-sm-3">Procesador</dt>
+        <dd class="col-sm-9">@Model.Procesador</dd>
+
+        <dt class="col-sm-3">RAM</dt>
+        <dd class="col-sm-9">@Model.RAM</dd>
+
+        <dt class="col-sm-3">Disco</dt>
+        <dd class="col-sm-9">@Model.Disco</dd>
+
+        <dt class="col-sm-3">Sistema Operativo</dt>
+        <dd class="col-sm-9">@Model.SistemaOperativo @Model.VersionSO</dd>
+
+        <dt class="col-sm-3">Número de serie</dt>
+        <dd class="col-sm-9">@Model.NumeroSerie</dd>
+
+        <dt class="col-sm-3">N° inventario</dt>
+        <dd class="col-sm-9">@Model.Inventario</dd>
+
+        <dt class="col-sm-3">Usuario asignado</dt>
+        <dd class="col-sm-9">@Model.UsuarioAsignado?.Nombre</dd>
+
+        <dt class="col-sm-3">Fecha compra</dt>
+        <dd class="col-sm-9">@Model.FechaCompra?.ToString("dd/MM/yyyy")</dd>
+
+        <dt class="col-sm-3">Garantía</dt>
+        <dd class="col-sm-9">@(Model.GarantiaMeses.HasValue? Model.GarantiaMeses + " meses" : "-")</dd>
+
+        <dt class="col-sm-3">Observaciones</dt>
+        <dd class="col-sm-9">@Model.Observaciones</dd>
+
+        <dt class="col-sm-3">Estado</dt>
+        <dd class="col-sm-9">@(Model.Activo ? "Activo" : "Inactivo")</dd>
+    </dl>
+
+    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">Editar</a>
+    <a asp-action="Index" class="btn btn-secondary">Volver al inventario</a>
+</div>

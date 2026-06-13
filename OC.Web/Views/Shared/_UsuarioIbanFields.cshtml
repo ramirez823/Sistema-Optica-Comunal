@@ -1,0 +1,32 @@
+@model OC.Web.ViewModels.UserViewModel
+
+<div class="col-md-6">
+    <label asp-for="Banco" class="form-label fw-bold">Banco</label>
+    <select asp-for="Banco" asp-items="Model.BancosList" class="form-select">
+        <option value="">-- Escoja su banco --</option>
+    </select>
+    <span asp-validation-for="Banco" class="text-danger"></span>
+</div>
+
+<div class="col-md-12">
+    <label class="form-label fw-bold">Cuenta IBAN (Costa Rica)</label>
+    <div class="d-flex flex-wrap align-items-center gap-2">
+        <span class="badge bg-secondary fs-6 px-3 py-2">CR</span>
+        <input asp-for="IbanBloque1" class="form-control text-center iban-bloque" style="max-width:5.5rem;" maxlength="4" inputmode="numeric" placeholder="0000" />
+        <input asp-for="IbanBloque2" class="form-control text-center iban-bloque" style="max-width:5.5rem;" maxlength="4" inputmode="numeric" placeholder="0000" />
+        <input asp-for="IbanBloque3" class="form-control text-center iban-bloque" style="max-width:5.5rem;" maxlength="4" inputmode="numeric" placeholder="0000" />
+        <input asp-for="IbanBloque4" class="form-control text-center iban-bloque" style="max-width:5.5rem;" maxlength="4" inputmode="numeric" placeholder="0000" />
+        <input asp-for="IbanBloque5" class="form-control text-center iban-bloque" style="max-width:5.5rem;" maxlength="4" inputmode="numeric" placeholder="0000" />
+    </div>
+    <small class="text-muted">Ingrese los 20 dígitos de la cuenta en grupos de 4 (el prefijo CR ya está incluido).</small>
+    <span asp-validation-for="IbanBloque1" class="text-danger d-block"></span>
+</div>
+
+<script>
+    document.querySelectorAll('.iban-bloque').forEach(function (input, index, list) {
+        input.addEventListener('input', function () {
+            this.value = this.value.replace(/\D/g, '').slice(0, 4);
+            if (this.value.length === 4 && list[index + 1]) list[index + 1].focus();
+        });
+    });
+</script>

@@ -1,0 +1,221 @@
+@model OC.Core.Common.PagedResult<OC.Core.Domain.Entities.Proveedor>
+@{
+    ViewData["Title"] = "Proveedores";
+    var pagination = new PaginationInfo
+    {
+        CurrentPage = Model.PageIndex,
+        TotalPages = Model.TotalPages,
+        GetPageUrl = (page) => Url.Action("Index", new { page, q = ViewBag.SearchActual })
+    };
+    var searchActual = ViewBag.SearchActual as string;
+    var pedidosPorProv = ViewBag.PedidosPorProveedor as Dictionary<int, int>
+                          ?? new Dictionary<int, int>();
+}
+
+<div class="container-fluid px-4">
+    @* ── HEADER ── *@
+    <div class="page-header animate-fade-up">
+        <div class="page-header-text">
+            <div class="page-header-icon">
+                <i class="bi bi-building-check"></i>
+            </div>
+            <div>
+                <h1 class="page-title">Proveedores</h1>
+                <p class="page-subtitle">
+                    <i class="bi bi-info-circle me-1"></i>
+                    @(Model.TotalCount == 0
+                        ? "Sin proveedores registrados aún."
+                        : $"{Model.TotalCount} proveedor(es) activo(s).")
+                </p>
+            </div>
+        </div>
+        <div class="page-actions">
+            <a asp-action="Create" class="btn btn-brand">
+                <i class="bi bi-plus-circle me-2"></i> Nuevo proveedor
+            </a>
+        </div>
+    </div>
+
+    @* ── ALERTAS ── *@
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show animate-fade-up" role="alert">
+            <i class="bi bi-check-circle me-2"></i>@TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-warning alert-dismissible fade show animate-fade-up" role="alert">
+            <i class="bi bi-exclamation-triangle me-2"></i>@TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @* ── BÚSQUEDA ── *@
+    <div class="card-dashboard animate-fade-up delay-1 mb-3">
+        <div class="card-body py-3">
+            <form asp-action="Index" method="get" class="row g-2 align-items-center">
+                <div class="col-12 col-md-6 col-lg-5">
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-search"></i></span>
+                        <input type="text" name="q" value="@searchActual" class="form-control"
+                               placeholder="Buscar por nombre, correo o teléfono…" autocomplete="off" />
+                    </div>
+                </div>
+                <div class="col-6 col-md-3 col-lg-2">
+                    <button type="submit" class="btn btn-outline-primary w-100">
+                        <i class="bi bi-funnel me-1"></i> Filtrar
+                    </button>
+                </div>
+                @if (!string.IsNullOrEmpty(searchActual))
+                {
+                    <div class="col-6 col-md-3 col-lg-2">
+                        <a asp-action="Index" class="btn btn-outline-secondary w-100">
+                            <i class="bi bi-x-circle me-1"></i> Limpiar
+                        </a>
+                    </div>
+                }
+            </form>
+        </div>
+    </div>
+
+    @* ── TABLA ── *@
+    <div class="card-dashboard animate-fade-up delay-2">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width:60px">#</th>
+                            <th>Proveedor</th>
+                            <th>Contacto</th>
+                            <th class="text-center" style="width:130px">Pedidos activos</th>
+                            <th class="text-center" style="width:120px">Estado</th>
+                            <th class="text-center" style="width:180px">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.Items)
+                        {
+                            var numPedidos = pedidosPorProv.TryGetValue(item.Id, out var n) ? n : 0;
+                            <tr>
+                                <td class="text-muted">@item.Id</td>
+                                <td>
+                                    <div class="entity-cell">
+                                        <div class="entity-avatar bg-info-subtle text-info-emphasis">
+                                            <i class="bi bi-building"></i>
+                                        </div>
+                                        <div>
+                                            <div class="fw-semibold">@item.Nombre</div>
+                                            <div class="text-muted small">Proveedor #@item.Id</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="contact-line">
+                                        <i class="bi bi-telephone-fill text-success"></i>
+                                        <a href="tel:@item.NumeroTelefonico" class="text-decoration-none">
+                                            @FormatPhone(item.NumeroTelefonico)
+                                        </a>
+                                    </div>
+                                    <div class="contact-line">
+                                        <i class="bi bi-envelope-fill text-primary"></i>
+                                        <a href="mailto:@item.Correo" class="text-decoration-none text-break">
+                                            @item.Correo
+                                        </a>
+                                    </div>
+                                </td>
+                                <td class="text-center">
+                                    <a asp-controller="Pedidos" asp-action="Index"
+                                       asp-route-proveedorId="@item.Id"
+                                       class="metric-tile @(numPedidos > 0 ? "metric-tile-active" : "")"
+                                       title="Ver pedidos de este proveedor">
+                                        <i class="bi bi-truck"></i>
+                                        <span class="metric-tile-value">@numPedidos</span>
+                                    </a>
+                                </td>
+                                <td class="text-center">
+                                    @if (item.Activo)
+                                    {
+                                        <span class="status-badge status-badge-active">
+                                            <i class="bi bi-check-circle-fill"></i> Activo
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="status-badge status-badge-inactive">
+                                            <i class="bi bi-pause-circle-fill"></i> Inactivo
+                                        </span>
+                                    }
+                                </td>
+                                <td class="text-center">
+                                    <div class="action-buttons">
+                                        <a asp-action="Details" asp-route-id="@item.Id"
+                                           class="btn-action btn-action-info" title="Ver detalle">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        <a asp-action="Edit" asp-route-id="@item.Id"
+                                           class="btn-action btn-action-primary" title="Editar">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <form asp-action="ToggleStatus" asp-route-id="@item.Id" method="post"
+                                              class="d-inline" onsubmit="return confirm('¿Cambiar el estado de este proveedor?');">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit"
+                                                    class="btn-action @(item.Activo ? "btn-action-danger" : "btn-action-success")"
+                                                    title="@(item.Activo ? "Desactivar" : "Activar")">
+                                                <i class="bi @(item.Activo ? "bi-pause-fill" : "bi-play-fill")"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            @if (!Model.Items.Any())
+            {
+                <div class="empty-state">
+                    <div class="empty-state-icon">
+                        <i class="bi bi-building"></i>
+                    </div>
+                    <h5 class="empty-state-title">
+                        @(string.IsNullOrEmpty(searchActual)
+                            ? "No hay proveedores registrados"
+                            : "Sin resultados para tu búsqueda")
+                    </h5>
+                    <p class="empty-state-text">
+                        @if (string.IsNullOrEmpty(searchActual))
+                        {
+                            <span>Empieza creando tu primer proveedor para gestionar pedidos.</span>
+                        }
+                        else
+                        {
+                            <span>No se encontraron proveedores que coincidan con «@searchActual».</span>
+                        }
+                    </p>
+                    @if (string.IsNullOrEmpty(searchActual))
+                    {
+                        <a asp-action="Create" class="btn btn-brand">
+                            <i class="bi bi-plus-circle me-1"></i> Crear el primero
+                        </a>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+
+    @await Html.PartialAsync("_Pagination", pagination)
+</div>
+
+@functions {
+    string FormatPhone(string phone)
+    {
+        if (string.IsNullOrEmpty(phone)) return "—";
+        var digits = new string(phone.Where(char.IsDigit).ToArray());
+        return digits.Length == 8 ? $"{digits[..4]}-{digits[4..]}" : phone;
+    }
+}

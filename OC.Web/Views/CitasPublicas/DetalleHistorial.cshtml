@@ -1,0 +1,119 @@
+@model OC.Core.Domain.Entities.Cita
+
+<div class="card-dashboard">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4>Detalle de cita</h4>
+        <a asp-action="MiHistorial" class="btn btn-secondary btn-sm">Volver</a>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <div class="text-muted small">Fecha</div>
+                    <div class="fw-bold">@Model.FechaHora.ToString("dd/MM/yyyy HH:mm")</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <div class="text-muted small">Estado</div>
+                    <div class="fw-bold">@Model.Estado</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <div class="text-muted small">Especialista</div>
+                    <div class="fw-bold">@(Model.UsuarioAsignado?.Nombre ?? "—")</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <hr class="my-4" />
+
+    <h5>Tratamiento realizado</h5>
+    <p>
+        @(
+            Model.Expediente != null && !string.IsNullOrWhiteSpace(Model.Expediente.MotivoConsulta)
+                ? Model.Expediente.MotivoConsulta
+                : (string.IsNullOrWhiteSpace(Model.MotivoConsulta) ? "—" : Model.MotivoConsulta)
+         )
+    </p>
+
+    <h5>Notas</h5>
+    <div class="row g-3">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <div class="text-muted small">Notas del especialista</div>
+                    <div>@(string.IsNullOrWhiteSpace(Model.ObservacionesEspecialista) ? "—" : Model.ObservacionesEspecialista)</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <div class="text-muted small">Observaciones del expediente</div>
+                    <div>@(string.IsNullOrWhiteSpace(Model.Expediente?.Observaciones) ? "—" : Model.Expediente!.Observaciones)</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (Model.Expediente?.ValoresClinicos != null && Model.Expediente.ValoresClinicos.Any())
+    {
+        <hr class="my-4" />
+        <h5>Valores clínicos</h5>
+        <table class="table table-sm table-bordered">
+            <thead>
+                <tr>
+                    <th>Diagnóstico</th>
+                    <th>Esf OD</th>
+                    <th>Cil OD</th>
+                    <th>Eje OD</th>
+                    <th>Esf OI</th>
+                    <th>Cil OI</th>
+                    <th>Eje OI</th>
+                    <th>Fecha</th>
+                </tr>
+            </thead>
+            <tbody>
+                @* ValoresClinicos ya viene ordenado por FechaRegistro DESC desde SQL *@
+                @foreach (var v in Model.Expediente.ValoresClinicos)
+                {
+                    <tr>
+                        <td>@v.Diagnostico</td>
+                        <td>@v.EsferaOD</td>
+                        <td>@v.CilindroOD</td>
+                        <td>@v.EjeOD</td>
+                        <td>@v.EsferaOI</td>
+                        <td>@v.CilindroOI</td>
+                        <td>@v.EjeOI</td>
+                        <td>@v.FechaRegistro.ToString("dd/MM/yyyy")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+
+    @if (Model.Expediente?.Documentos != null && Model.Expediente.Documentos.Any())
+    {
+        <hr class="my-4" />
+        <h5>Documentos</h5>
+        <ul class="mb-0">
+            @* Documentos ya viene ordenado por FechaSubida DESC desde SQL *@
+            @foreach (var doc in Model.Expediente.Documentos)
+            {
+                <li>
+                    <a href="@doc.RutaArchivo" target="_blank">@doc.NombreArchivo</a>
+                    <span class="text-muted small">(@doc.FechaSubida.ToString("dd/MM/yyyy"))</span>
+                </li>
+            }
+        </ul>
+    }
+</div>
+

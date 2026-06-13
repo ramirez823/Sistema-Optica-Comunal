@@ -1,0 +1,52 @@
+@model List<OC.Core.Domain.Entities.EnvioNotificacion>
+
+<div class="card-dashboard">
+    <h4>Mis notificaciones</h4>
+    <p class="text-muted">
+        Aquí verá las notificaciones del sistema (por ejemplo, cuando sus lentes estén listos).
+        Por ahora se muestran dentro del sistema.
+    </p>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info">
+            Aún no tiene notificaciones.
+        </div>
+    }
+    else
+    {
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Tipo</th>
+                    <th>Mensaje</th>
+                    <th>Canal</th>
+                    <th>Destino</th>
+                    <th>Estado</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var n in Model)
+                {
+                    <tr>
+                        <td>@n.FechaHoraEnvio.ToString("dd/MM/yyyy HH:mm")</td>
+                        <td>@n.TipoNotificacion</td>
+                        <td>@(n.MensajeResumen ?? "—")</td>
+                        <td>@(n.Canal ?? "—")</td>
+                        <td>@(n.Destinatario ?? "—")</td>
+                        <td>
+                            @if (n.Exito)
+                            { <span class="badge bg-success">Registrada</span> }
+                            else
+                            { <span class="badge bg-danger">Error</span> }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+
+    <a asp-action="Index" class="btn btn-secondary">Volver</a>
+</div>
+

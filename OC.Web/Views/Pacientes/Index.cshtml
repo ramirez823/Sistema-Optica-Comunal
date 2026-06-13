@@ -1,0 +1,175 @@
+@model OC.Core.Common.PagedResult<OC.Core.Domain.Entities.Paciente>
+@using OC.Core.Domain.Entities
+@{
+    ViewData["Title"] = "Pacientes";
+    var searchTerm = ViewBag.SearchTerm as string;
+    var pagination = new PaginationInfo
+    {
+        CurrentPage = Model.PageIndex,
+        TotalPages = Model.TotalPages,
+        GetPageUrl = (page) => Url.Action("Index", new { page, searchTerm })
+    };
+}
+
+<div class="container-fluid px-4">
+    @* ── HEADER ── *@
+    <div class="page-header animate-fade-up">
+        <div class="page-header-text">
+            <div class="page-header-icon">
+                <i class="bi bi-person-heart"></i>
+            </div>
+            <div>
+                <h1 class="page-title">Pacientes</h1>
+                <p class="page-subtitle">
+                    <i class="bi bi-info-circle me-1"></i>
+                    @(Model.TotalCount == 0
+                        ? "Sin pacientes registrados."
+                        : $"{Model.TotalCount} paciente(s) en el sistema.")
+                </p>
+            </div>
+        </div>
+        <div class="page-actions">
+            <a asp-action="Create" class="btn btn-brand">
+                <i class="bi bi-plus-circle me-2"></i> Nuevo paciente
+            </a>
+        </div>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show animate-fade-up mb-3" role="alert">
+            <i class="bi bi-check-circle me-2"></i>@TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @* ── BÚSQUEDA ── *@
+    <div class="card-dashboard animate-fade-up delay-1 mb-3">
+        <div class="card-body filter-bar">
+            <form method="get" asp-action="Index" class="row g-2 align-items-end">
+                <div class="col-12 col-md-6 col-lg-5">
+                    <label class="form-label">Buscar</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-search"></i></span>
+                        <input type="text" name="searchTerm" class="form-control"
+                               placeholder="Nombre o cédula..." value="@searchTerm" autocomplete="off" />
+                    </div>
+                </div>
+                <div class="col-6 col-md-3 col-lg-2">
+                    <button type="submit" class="btn btn-outline-primary w-100">
+                        <i class="bi bi-funnel me-1"></i> Filtrar
+                    </button>
+                </div>
+                @if (!string.IsNullOrEmpty(searchTerm))
+                {
+                    <div class="col-6 col-md-3 col-lg-2">
+                        <a asp-action="Index" class="btn btn-outline-secondary w-100">
+                            <i class="bi bi-x-circle me-1"></i> Limpiar
+                        </a>
+                    </div>
+                }
+            </form>
+        </div>
+    </div>
+
+    @* ── TABLA ── *@
+    <div class="card-dashboard animate-fade-up delay-2">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Paciente</th>
+                            <th>Cédula</th>
+                            <th>Contacto</th>
+                            <th>Fecha de Nacimiento</th>
+                            <th>Fecha de Registro</th>
+                            <th class="text-end" style="width:160px">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var p in Model.Items)
+                        {
+                            <tr>
+                                <td>
+                                    <div class="entity-cell">
+                                        <div class="entity-avatar bg-info-subtle text-info-emphasis">
+                                            <i class="bi bi-person-fill"></i>
+                                        </div>
+                                        <div>
+                                            <div class="fw-semibold">@p.NombreCompleto</div>
+                                            <div class="text-muted small">Paciente #@p.Id</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td><span class="text-muted">@p.Cedula</span></td>
+                                <td>
+                                    <div class="contact-line">
+                                        <i class="bi bi-telephone-fill text-success"></i>
+                                        @(p.Telefono ?? "—")
+                                    </div>
+                                    <div class="contact-line">
+                                        <i class="bi bi-envelope-fill text-primary"></i>
+                                        <span class="text-break">@(p.Email ?? "—")</span>
+                                    </div>
+                                </td>
+                                <td>@p.FechaNacimiento.ToString("dd/MM/yyyy")</td>
+                                <td>@p.FechaRegistro.ToString("dd/MM/yyyy")</td>
+                                <td class="text-end">
+                                    <div class="action-buttons justify-content-end">
+                                        <a asp-action="Edit" asp-route-id="@p.Id"
+                                           class="btn-action btn-action-primary" title="Editar">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        @if (User.IsInRole("Admin") || User.IsInRole("Optometrista") || User.IsInRole("Recepcion"))
+                                        {
+                                            <a asp-controller="CitasPublicas"
+                                               asp-action="HistorialPaciente"
+                                               asp-route-pacienteId="@p.Id"
+                                               class="btn-action btn-action-info"
+                                               title="Ver historial">
+                                                <i class="bi bi-clock-history"></i>
+                                            </a>
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            @if (!Model.Items.Any())
+            {
+                <div class="empty-state">
+                    <div class="empty-state-icon">
+                        <i class="bi bi-person-heart"></i>
+                    </div>
+                    <h5 class="empty-state-title">
+                        @(string.IsNullOrEmpty(searchTerm)
+                            ? "No hay pacientes registrados"
+                            : "Sin resultados para tu búsqueda")
+                    </h5>
+                    <p class="empty-state-text">
+                        @if (string.IsNullOrEmpty(searchTerm))
+                        {
+                            <span>Registra el primer paciente para empezar a gestionar citas y expedientes.</span>
+                        }
+                        else
+                        {
+                            <span>No se encontraron pacientes que coincidan con «@searchTerm».</span>
+                        }
+                    </p>
+                    @if (string.IsNullOrEmpty(searchTerm))
+                    {
+                        <a asp-action="Create" class="btn btn-brand">
+                            <i class="bi bi-plus-circle me-1"></i> Registrar el primero
+                        </a>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+
+    @await Html.PartialAsync("_Pagination", pagination)
+</div>
